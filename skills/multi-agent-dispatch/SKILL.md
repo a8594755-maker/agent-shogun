@@ -15,42 +15,33 @@ If you cannot check now (no web access or allowance), say so and continue with t
 Initial `?` tiers, best-for suggestions and allocation are provisional. Context size 0, release null and allowance cost 1 mean not confirmed; they are not measured capacity or cost claims. Consult the JSON's evidence and notConfirmed fields.
 
 <!-- catalog:start -->
-| Provider | Callable model ID | Tier | Best for |
-| --- | --- | --- | --- |
-| claude | `claude-fable-5-2` | strong? | Provisional: general coding |
-| claude | `claude-opus-5-5` | frontier? | Provisional: hard design/review |
-| claude | `claude-sonnet-5-5` | strong? | Provisional: UI/implementation |
-| claude | `claude-haiku-5-5` | fast? | Provisional: cheap bulk/tests |
-| codex | `gpt-6.1-sol` | strong? | Provisional: server/tests |
-| codex | `gpt-6-astra` | frontier? | Provisional: design/debugging |
-| agy | `gemini-4-carbon-low` | strong? | Provisional: research/implementation |
-| agy | `gemini-4-carbon-medium` | strong? | Provisional: research/implementation |
-| agy | `gemini-4-carbon-high` | strong? | Provisional: research/implementation |
-| agy | `gemini-4-argon-low` | strong? | Provisional: research/implementation |
-| agy | `gemini-4-argon-medium` | strong? | Provisional: research/implementation |
-| agy | `gemini-4-argon-high` | strong? | Provisional: research/implementation |
-| agy | `gemini-3.8-flash-low` | fast? | Provisional: research/implementation |
-| agy | `gemini-3.8-flash-medium` | fast? | Provisional: research/implementation |
-| agy | `gemini-3.8-flash-high` | fast? | Provisional: research/implementation |
-| agy | `claude-opus-5-5-low` | frontier? | Provisional: review/UI |
-| agy | `claude-opus-5-5-medium` | frontier? | Provisional: review/UI |
-| agy | `claude-opus-5-5-high` | frontier? | Provisional: review/UI |
-| agy | `claude-sonnet-5-5-low` | strong? | Provisional: review/UI |
-| agy | `claude-sonnet-5-5-medium` | strong? | Provisional: review/UI |
-| agy | `claude-sonnet-5-5-high` | strong? | Provisional: review/UI |
-| agy | `gpt-oss-120b-medium` | strong? | Provisional: general coding |
-| agy | `gemini-pro-orchestrator` | strong? | Provisional: research/planning |
-| grok | `grok-4.7` | frontier? | Provisional: general coding |
-| grok | `grok-4.7-build-fast` | fast? | Provisional: cheap coding/tests |
-| grok | `grok-4.6` | strong? | Provisional: general coding |
-| grok | `grok-4.5` | strong? | Provisional: general coding |
+| Provider | Model / callable ID pattern | Efforts | Tier | Best for | Allowance group |
+| --- | --- | --- | --- | --- | --- |
+| claude | `claude-fable-5-2` | low / medium / high | strong? | Provisional: general coding | provider pool |
+| claude | `claude-opus-5-5` | low / medium / high | frontier? | Provisional: hard design/review | provider pool |
+| claude | `claude-sonnet-5-5` | low / medium / high | strong? | Provisional: UI/implementation | provider pool |
+| claude | `claude-haiku-5-5` | low / medium / high | fast? | Provisional: cheap bulk/tests | provider pool |
+| codex | `gpt-6.1-sol` | low / medium / high | strong? | Provisional: server/tests | provider pool |
+| codex | `gpt-6-astra` | low / medium / high | frontier? | Provisional: design/debugging | provider pool |
+| agy | `gemini-4-carbon-<effort>` | low / medium / high | strong? | Provisional: research/implementation | Gemini Models |
+| agy | `gemini-4-argon-<effort>` | low / medium / high | strong? | Provisional: research/implementation | Gemini Models |
+| agy | `gemini-3.8-flash-<effort>` | low / medium / high | fast? | Provisional: research/implementation | Gemini Models |
+| agy | `claude-opus-5-5-<effort>` | low / medium / high | frontier? | Provisional: review/UI | Claude and GPT models |
+| agy | `claude-sonnet-5-5-<effort>` | low / medium / high | strong? | Provisional: review/UI | Claude and GPT models |
+| agy | `gpt-oss-120b-<effort>` | medium | strong? | Provisional: general coding | Claude and GPT models |
+| agy | `gemini-pro-orchestrator` | low / medium / high | strong? | Provisional: research/planning | Gemini Models |
+| grok | `grok-4.7` | low / medium / high / xhigh | frontier? | Provisional: general coding | provider pool |
+| grok | `grok-4.7-build-fast` | low / medium / high / xhigh | fast? | Provisional: cheap coding/tests | provider pool |
+| grok | `grok-4.6` | low / medium / high / xhigh | strong? | Provisional: general coding | provider pool |
+| grok | `grok-4.5` | low / medium / high / xhigh | strong? | Provisional: general coding | provider pool |
 
-| Provider | Remaining allowance |
-| --- | --- |
-| claude | roster usage; without roster: optional status-line cache or manual dashboard reading |
-| codex | roster usage; without roster: session-log rate_limits, or app-server account/rateLimits/read |
-| agy | agy --print /usage --output-format json (direct binary; remaining fractions, two separate groups) |
-| grok | Unknown; local turn token/cost gauge only |
+**How to read what is left**
+| Provider | Command or source | Windows |
+| --- | --- | --- |
+| claude | roster usage; without roster: optional status-line cache or manual dashboard reading | 5-hour / weekly |
+| codex | roster usage; without roster: session-log rate_limits, or app-server account/rateLimits/read | weekly |
+| agy | agy --print /usage --output-format json (direct binary; remaining fractions, two separate groups) | 5-hour / weekly |
+| grok | Unknown; local token/cost gauge | unknown |
 
 | Work | First choice | Second choice |
 | --- | --- | --- |
@@ -74,6 +65,7 @@ Kinds are open strings: hardest, ui, server, tests (mechanical is an alias), rev
 ## Plan, brief and integrate
 
 Use one planner to own acceptance and integration. Split independent work by files/modules with explicit ownership; keep shared-file integration with the planner. Assign one worker session per branch/worktree.
+Project rules come from the project's own configuration or instructions and always win over the catalog. Never copy a project's rule into this skill.
 Each brief states the goal, owned files, directory/branch, acceptance checks and forbidden mechanisms (for example no dependencies, schema changes, network, deployment, publication or test weakening). Environment guards are accident guards, not full enforcement.
 Workers run the type check and relevant tests, fix failures until green, commit only on their branch, and report the commit plus exact checks. Never push, deploy or publish without the user's corresponding authorization.
 With roster: `roster start worker-a --provider codex --brief brief.txt --worktree ../worker-a --branch worker/a --base main`; inspect `status`, `wait`, `answer`, HEAD and diff. Resume via `roster send worker-a --message <file or text>`, after the prior turn ends.

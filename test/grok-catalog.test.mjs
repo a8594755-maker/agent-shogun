@@ -69,7 +69,7 @@ for (const provider of providerNames) test(`${provider} auth probe detects signe
   finally { delete process.env.ROSTER_FAKE_AUTH_UNKNOWN; }
 });
 test('pick never chooses signed-out or unknown-auth providers', () => {
-  const c = structuredClone(defaults); c.kinds.custom = [{ provider: 'grok', model: 'grok-4.7', effort: 'none' }];
+  const c = structuredClone(defaults); c.kinds = {}; c.kinds.custom = [{ provider: 'grok', model: 'grok-4.7', effort: 'none' }];
   for (const authState of ['not signed in', 'unknown', undefined]) assert.equal(pick(c, 'custom', [{ provider: 'grok', installed: true, authState }], []).selected, null);
   assert.equal(pick(c, 'custom', installed, []).selected.provider, 'grok');
 });
@@ -119,8 +119,8 @@ test('allocation precedence is explicit user kinds, then catalog, then built-ins
   const s = await scratch(t), c = await seed();
   await fs.writeFile(path.join(s.root, 'roster.config.json'), JSON.stringify({ providers: s.config.providers, kinds: { custom: [{ provider: 'grok', model: 'grok-4.7', effort: 'none' }] } }));
   const config = await loadConfig(s.root), info = { catalog: c, status: catalogStatus(c, 15, Date.parse('2026-11-12')) };
-  assert.equal(pick(config, 'server', installed, [], undefined, info).allocationSource, 'skill catalog'); assert.equal(pick(config, 'custom', installed, [], undefined, info).allocationSource, 'user configuration');
-  assert.equal(pick(config, 'server', installed, [], undefined, { ...info, catalog: null }).allocationSource, 'built-in defaults');
+  assert.equal(pick(config, 'server', installed, [], undefined, info).allocationSource, 'skill catalog'); assert.equal(pick(config, 'custom', installed, [], undefined, info).allocationSource, 'project rule');
+  assert.equal(pick(config, 'server', installed, [], undefined, { ...info, catalog: null }).allocationSource, 'most allowance left');
   assert.deepEqual(pick(config, 'mechanical', installed, [], undefined, info).selected, pick(config, 'tests', installed, [], undefined, info).selected);
 });
 test('pick warns for stale catalogs and model drift identifies additions and retirements', async () => {

@@ -15,31 +15,37 @@ import { safeName } from '../src/io.mjs';
 
 const installed = ['codex', 'agy', 'claude'].map(provider => ({ provider, installed: true, authState: 'signed in' }));
 const readings = (codex, agy, claude) => [codex, agy, claude].map((percent, i) => ({ provider: installed[i].provider, windows: percent === null ? [] : [{ usedPercent: percent, label: 'weekly' }] }));
+const preferences = { ...defaults, kinds: {
+  ui: [{provider:'claude', model:'sonnet', effort:'medium'}, {provider:'agy',model:'gemini-example',effort:'low'}, {provider:'codex',model:'gpt-6-astra',effort:'low'}],
+  server: [{provider:'codex',model:'gpt-6-astra',effort:'low'}, {provider:'claude',model:'sonnet',effort:'medium'}, {provider:'agy',model:'gemini-example',effort:'low'}],
+  review: [{provider:'agy',model:'gemini-example',effort:'low'}, {provider:'agy',model:'claude-example',effort:'low'}, {provider:'codex',model:'gpt-6-astra',effort:'low'}, {provider:'claude',model:'sonnet',effort:'medium'}],
+  research: [{provider:'agy',model:'gemini-example',effort:'low',web:true}]
+} };
 test('pick follows kind order and reports numbers', () => {
-  const p = pick(defaults, 'ui', installed, readings(20, 30, 40));
+  const p = pick(preferences, 'ui', installed, readings(20, 30, 40));
   assert.equal(p.selected.provider, 'claude'); assert.match(p.reason, /claude\/sonnet\[default\]=40%/);
 });
-test('pick rebalances a gap greater than 25 points', () => assert.equal(pick(defaults, 'server', installed, readings(60, 20, 30)).selected.provider, 'agy'));
-test('pick retains preference for exactly 25 points', () => assert.equal(pick(defaults, 'server', installed, readings(45, 20, 30)).selected.provider, 'codex'));
-test('pick excludes other-family author', () => assert.equal(pick(defaults, 'review', installed, readings(10, 0, 20), 'agy').selected.provider, 'codex'));
+test('pick rebalances a gap greater than 25 points', () => assert.equal(pick(preferences, 'server', installed, readings(60, 20, 30)).selected.provider, 'agy'));
+test('pick retains preference for exactly 25 points', () => assert.equal(pick(preferences, 'server', installed, readings(45, 20, 30)).selected.provider, 'codex'));
+test('pick excludes other-family author', () => assert.equal(pick(preferences, 'review', installed, readings(10, 0, 20), 'agy').selected.provider, 'codex'));
 test('pick excludes missing, limited and ceiling providers', () => {
   const r = readings(90, 1, 5); r[1].limited = true;
-  const p = pick(defaults, 'review', installed.map(x => ({ ...x, installed: x.provider !== 'claude' })), r);
+  const p = pick(preferences, 'review', installed.map(x => ({ ...x, installed: x.provider !== 'claude' })), r);
   assert.equal(p.selected, null); assert.equal(p.rejected.length, 4);
 });
 test('pick evaluates tightest window', () => {
   const r = readings(2, 20, 10); r[0].windows.push({ usedPercent: 95 });
-  assert.equal(pick(defaults, 'server', installed, r).selected.provider, 'claude');
+  assert.equal(pick(preferences, 'server', installed, r).selected.provider, 'claude');
 });
 test('unknown usage remains explicit without inventing a percent', () => {
-  const p = pick(defaults, 'review', installed, readings(0, null, 0));
+  const p = pick(preferences, 'review', installed, readings(0, null, 0));
   assert.equal(p.selected.provider, 'agy'); assert.equal(p.selected.tightest, null); assert.match(p.reason, /unknown/);
 });
 test('expired windows do not permanently exclude provider', () => {
   const r = readings(99, 10, 10); r[0].windows[0].expired = true;
-  assert.equal(pick(defaults, 'server', installed, r).selected.provider, 'codex');
+  assert.equal(pick(preferences, 'server', installed, r).selected.provider, 'codex');
 });
-test('research choice includes web request', () => assert.equal(pick(defaults, 'research', installed, readings(0, 0, 0)).selected.web, true));
+test('research choice includes web request', () => assert.equal(pick(preferences, 'research', installed, readings(0, 0, 0)).selected.web, true));
 test('argument arrays preserve spaces, Unicode and shell metacharacters', () => {
   const p = parseArgs(['send', 'one', '--message', 'a Ω & $(not-a-command)', '--json']);
   assert.equal(p.options.message, 'a Ω & $(not-a-command)'); assert.equal(p.json, true);

@@ -38,7 +38,9 @@ for its exact settings schema; do not change global configuration automatically.
 For Grok add repeated `--deny` rules, including `Bash(git push*)`,
 `Bash(git * push*)`, `Bash(*wrangler*)`, `Bash(*npm publish*)`, and
 `Bash(*npm run deploy*)`; add `--disable-web-search` without web authorization.
-Default-mode commands may be cancelled in headless runs. Do not silently switch to
+Add `--allow 'Edit(./**)'`, `--allow 'Write(./**)'`, `--allow 'Bash(git add *)'`,
+`--allow 'Bash(git commit *)'`, and explicit project test/check command grants for
+unattended guarded writes. Other default-mode commands may be cancelled. Do not silently switch to
 bypass mode. The installed Grok 1.0.41 rejected `none`; its observed minimum was
 `low`. Its guide documents kernel sandbox enforcement on Linux/macOS, not Windows.
 

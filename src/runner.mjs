@@ -39,7 +39,7 @@ async function run() {
     const prompt = await fsp.readFile(path.join(dir, 'prompt.txt'), 'utf8');
     const settings = path.join(dir, 'settings.json');
     if (meta.provider === 'agy') await writeJson(settings, agySettings(config, meta.web, meta.access));
-    const invocation = adapters[meta.provider].build({ ...meta, answer: answerFile, prompt, promptFile: path.join(dir, 'prompt.txt'), settings });
+    const invocation = adapters[meta.provider].build({ ...meta, providerConfig: config.providers[meta.provider], answer: answerFile, prompt, promptFile: path.join(dir, 'prompt.txt'), settings });
     const outFd = fs.openSync(events, 'a'), errFd = fs.openSync(path.join(dir, 'stderr.txt'), 'a');
     let exitCode;
     try {
@@ -68,6 +68,7 @@ async function run() {
     if (!fs.existsSync(answerFile)) await fsp.writeFile(answerFile, '');
     if (interrupted) failure = 'interrupted';
     else if (stopped) failure = 'stopped';
+    else if (meta.provider === 'grok' && parsed.details?.stopReason === 'cancelled') failure = 'cancelled (permission?)';
     else if (exitCode !== 0) failure ||= `Provider exited ${exitCode}`;
     else if (!parsed.ok) failure ||= parsed.error || 'Provider did not report a successful completed turn.';
     const limitText = [parsed.error, parsed.ok ? '' : parsed.answer, stderrTail, stdoutTail].filter(Boolean).join('\n');

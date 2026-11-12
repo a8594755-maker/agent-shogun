@@ -121,11 +121,16 @@ In **both** modes, by default:
 - Every turn includes the configured executor header plus assigned directory,
   branch, access, and requested web policy.
 
-Grok safe sessions use `--permission-mode default --sandbox workspace` plus
+Grok safe sessions use `--permission-mode default --sandbox workspace`, explicit
+`--allow` rules for rooted edits, git add/commit and project check commands, plus
 `--deny` rules for pushes and common deploy/publish commands. Its bundled guide
 recommends `workspace` for coding; its separate automation advice recommends
 always-approve, which roster deliberately does not enable for safe access.
-Default-mode headless writes/commands may therefore be denied. The guide documents
+Other default-mode headless calls may still be denied/cancelled. Configure project
+check commands with `providers.grok.testCommands`; defaults include `node --test`,
+`npm test`, and package scripts named test/check/typecheck/lint/build. No catch-all
+Bash grant is added. Test scripts can themselves run arbitrary project code.
+The guide documents
 kernel sandbox enforcement on Linux/macOS only, and warns that unsupported
 built-in profiles may continue unenforced; **do not assume Windows isolation**.
 Grok full sessions explicitly use `bypassPermissions` and sandbox `off`. Both
@@ -145,8 +150,8 @@ dump the child's inherited environment; provider CLIs use their existing sign-in
 
 `--web` requests live search for Codex and removes Antigravity's web denies.
 Claude uses its own available web tools and policy. Without `--web`, roster does
-not enforce a network ban for Codex or Claude. Research picks include `web: true`;
-pass `--web` when starting that recommendation.
+not enforce a network ban for Codex or Claude. Pass `--web` when the research brief
+requires web access; a catalog preference alone does not grant it.
 
 ## Usage and selection
 
@@ -182,8 +187,8 @@ Allowance JSON is `provider -> groups[] -> windows[]`:
 | claude | `default` | All native Claude models; manually supplied model windows can narrow this |
 
 An unmapped Antigravity model has unknown allowance; it never borrows a different
-group's reading. Default preference arrays include Claude Sonnet through
-Antigravity as a separate candidate. Group allowances, limits, and local token
+group's reading. Catalog allocations can include Claude models through
+Antigravity as separate candidates. Group allowances, limits, and local token
 gauges stay separate. Native Claude allowance is not Antigravity Claude allowance.
 
 Claude reads only `~/.roster/claude-usage.json`, written by the optional script
@@ -211,7 +216,9 @@ Local token gauges exclude work outside roster and are **not** subscription
 percentages or interchangeable billing units. `--refresh` bypasses the source
 cache and can perform the quota commands above, but never starts an inference turn.
 
-`pick` starts with the configured ordered preferences. It drops missing
+`pick` follows a project rule when present, otherwise the catalog allocation.
+For a kind absent from both, it selects the signed-in eligible provider with the
+most known allowance left. No per-kind provider order is hard-coded. It drops missing
 providers, group limits, any applicable non-expired window **at or above 90%**, and
 the excluded provider/underlying family. Claude through Antigravity is in the
 Claude family; GPT through Antigravity is in the Codex/OpenAI family. The first eligible choice wins unless its tightest percentage
@@ -263,9 +270,13 @@ The skill is kept under 160 lines; research detail stays in the reference brief.
 `references/direct-cli-guide.md` supplies launch/resume templates and allowance
 reading instructions when this folder is installed without the program.
 
-`pick` uses explicit user `kinds`, then catalog `allocation`, then built-in
-defaults, and warns on a stale/missing catalog. `init` leaves `kinds` absent so
+`pick` uses explicit project `kinds`, then catalog `allocation`, then available
+allowance, and warns on a stale/missing catalog. `init` leaves `kinds` absent so
 future catalog updates can take effect; existing explicit kinds continue to win.
+A project list replaces the whole catalog list for that kind, including an empty
+list. If no listed candidate is eligible, pick exits nonzero with a `project rule`
+explanation and never escapes to another provider. Project policy belongs only in
+the consuming project's config or instructions, never in the generic skill.
 Kinds are open strings, including `hardest`, `ui`, `server`, `tests`, `review`,
 `security`, `research`, and `bulk`; `mechanical` aliases `tests`. Catalog allocation
 remains a preference and allowance comparison can rebalance the choice.
@@ -352,7 +363,7 @@ resolve from the command's working directory; absolute paths are recommended.
 | `guards.env` | Map of environment names to replacement strings. Set to `false` to disable overrides; set an entry to `null` to remove that variable from the child. Use dummy values, never secrets in shared config. |
 | `guards.antigravityDeny` | `true`; false disables the entire extra deny list, including web denies. |
 | `briefHeader` | Executor rules: assigned directory/branch only; never push, deploy or publish; run type check/tests until green; never weaken tests. Replace with text as needed. |
-| `kinds.<kind>` | Ordered `{provider, model, effort, web?}` arrays. ui starts with native Claude then Claude through agy; server/mechanical start with Codex; review/research start with agy Gemini. Every kind also includes agy's `claude-sonnet-5-5-low` as a separate candidate. Research requests web. |
+| `kinds.<kind>` | Optional project rule: ordered `{provider, model, effort, web?}` entries replacing catalog choices for that kind. No per-kind order is shipped in code or example config. |
 | `usage.ceiling` | 90; at-or-above excludes a provider. |
 | `usage.balancePoints` | 25; strictly greater gap allows rebalancing. |
 | `usage.suppliedMaxAgeMinutes` | 30; age limit for dashboard/planner readings. |
@@ -362,6 +373,16 @@ resolve from the command's working directory; absolute paths are recommended.
 | `usage.externalTimeoutMs` | 15000; external-command time limit. |
 | `catalog.path` | `null`; use the installed repository's skill. Override with an external skill folder or its `references/model-catalog.json`. Relative paths resolve from the controlling repository (cwd outside Git for catalog commands). |
 | `catalog.maxAgeDays` | 15; status exits 3 when age is strictly greater. The skill's normal next-check cadence remains verified date + 15 days. |
+
+Discovery walks upward from cwd to the Git repository root and uses the nearest
+`roster.config.json`. `--config <path>` before or after the command overrides
+discovery. Unknown top-level metadata such as `_comment` is tolerated. This is
+only a commented example for a consuming project's own config:
+
+```jsonc
+// Example local rule; never copy it into the generic skill.
+{ "kinds": { "ui": [{ "provider": "claude", "model": "claude-opus-5-5", "effort": "high" }] } }
+```
 
 Provider versions are probed with `--version`. Antigravity exposes `models`;
 the checked Codex and Claude CLIs have no model-list command, so roster labels
@@ -499,6 +520,14 @@ The follow-up stated that the previous command was cancelled before any file was
 written and it would check the directory. The session IDs matched; reported costs
 were USD 0.03112088 and 0.00909024. Roster correctly marked both turns failed.
 The reason for cancellation was not confirmed; safe access was not escalated.
+
+The next repair verified the permission cause with three Grok calls at low effort:
+one full-access hello task, one guarded hello task with explicit file/git/check
+allows, and one guarded resume. Both tasks created and committed `hello.txt` and
+passed the scratch project's checks; the guarded resume answered `hello.txt`.
+Cancelled envelopes now report `failed: cancelled (permission?)`, including when
+the CLI exits nonzero. The guarded mode retains push/deploy denies and environment
+guards; Windows kernel sandbox enforcement is still not claimed.
 
 The live Antigravity model list also added `gemini-4-hydrogen-*` variants after the
 initial inventory was seeded. The new drift checks reported these uncatalogued

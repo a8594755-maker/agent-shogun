@@ -3,7 +3,6 @@ import path from 'node:path';
 import { readJson } from './io.mjs';
 
 export const providerNames = ['codex', 'agy', 'claude', 'grok'];
-const choice = (provider, model, effort = 'medium', web = false) => ({ provider, model, effort, ...(web ? { web } : {}) });
 export const defaults = {
   providers: {
     codex: { model: 'gpt-6-astra', effort: 'low' },
@@ -15,13 +14,6 @@ export const defaults = {
   catalog: { path: null, maxAgeDays: 15 },
   guards: { blockPush: true, env: { CLOUDFLARE_API_TOKEN: 'roster-deploy-disabled' }, antigravityDeny: true },
   briefHeader: 'Work only in your assigned directory. Commit only on your assigned branch. Never push, deploy, or publish. Run the type check and tests yourself and loop until green. Never weaken an existing test.',
-  kinds: {
-    ui: [choice('claude', 'sonnet'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('agy', 'gemini-3.8-flash-low'), choice('codex', 'gpt-6-astra', 'low')],
-    server: [choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet'), choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low')],
-    mechanical: [choice('codex', 'gpt-6-astra', 'low'), choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('claude', 'sonnet')],
-    review: [choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet')],
-    research: [choice('agy', 'gemini-3.8-flash-low', 'low', true), choice('agy', 'claude-sonnet-5-5-low', 'low', true), choice('claude', 'sonnet', 'medium', true), choice('codex', 'gpt-6-astra', 'low', true)]
-  },
   usage: { ceiling: 90, balancePoints: 25, suppliedMaxAgeMinutes: 30, cacheSeconds: 30, sourceMaxAgeMinutes: 30, externalCommand: null, externalTimeoutMs: 15000 }
 };
 function merge(a, b) {
@@ -36,10 +28,22 @@ export function checkProvider(name) {
   if (!providerNames.includes(name)) throw new Error(`Unknown provider: ${name}`);
   return name;
 }
-export async function loadConfig(root) {
-  const user = await readJson(path.join(root, 'roster.config.json'), {});
+export async function loadConfig(root, { cwd = root, configPath } = {}) {
+  let file = configPath ? path.resolve(cwd, configPath) : null;
+  if (!file) {
+    let dir = path.resolve(cwd); const boundary = path.resolve(root), relative = path.relative(boundary, dir);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) dir = boundary;
+    for (;;) {
+      const candidate = path.join(dir, 'roster.config.json');
+      if (await fs.access(candidate).then(() => true, () => false)) { file = candidate; break; }
+      if (!path.relative(boundary, dir) || path.dirname(dir) === dir) break;
+      dir = path.dirname(dir);
+    }
+  }
+  const user = file ? await readJson(file) : {};
   const c = merge(defaults, user);
   Object.defineProperty(c, 'userKinds', { value: user.kinds || {}, enumerable: false });
+  Object.defineProperty(c, 'configFile', { value: file, enumerable: false });
   if (!Number.isFinite(c.catalog.maxAgeDays) || c.catalog.maxAgeDays < 0 || c.catalog.path !== null && typeof c.catalog.path !== 'string') throw new Error('Invalid catalog path or maxAgeDays.');
   if (!['safe', 'full'].includes(c.access)) throw new Error('access must be safe or full.');
   for (const [key, value] of Object.entries(c.usage)) {
@@ -58,10 +62,15 @@ export async function loadConfig(root) {
   }
   if (c.guards.env !== false && (!c.guards.env || typeof c.guards.env !== 'object' || Array.isArray(c.guards.env))) throw new Error('guards.env must be an object or false.');
   for (const value of Object.values(c.guards.env || {})) if (value !== null && typeof value !== 'string') throw new Error('Environment replacements must be strings or null.');
-  for (const choices of Object.values(c.kinds)) {
+  for (const choices of Object.values(c.userKinds)) {
     if (!Array.isArray(choices)) throw new Error('Each kind must be an ordered array.');
-    for (const entry of choices) checkProvider(entry.provider);
+    for (const entry of choices) {
+      checkProvider(entry.provider);
+      if (typeof entry.model !== 'string' || !entry.model || typeof entry.effort !== 'string' || !entry.effort) throw new Error('Project kind entries need model and effort.');
+    }
   }
+  const commands = c.providers.grok.testCommands;
+  if (commands !== undefined && (!Array.isArray(commands) || commands.some(s => typeof s !== 'string' || !s.trim() || /[\r\n()]/.test(s)))) throw new Error('Grok testCommands must be an array of command patterns without newlines or parentheses.');
   return c;
 }
 export async function init(root) {

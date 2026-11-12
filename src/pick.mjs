@@ -8,14 +8,24 @@ function appliesToModel(window, model) {
 
 export function pick(config, kind, installed, readings, notFamily, catalogInfo) {
   const canonical = kind === 'mechanical' ? 'tests' : kind;
-  const user = config.userKinds ?? config.kinds;
-  const override = user[kind] || user[canonical] || (canonical === 'tests' ? user.mechanical : undefined);
+  const user = config.userKinds ?? config.kinds ?? {};
+  const ruleKey = Object.hasOwn(user, canonical) ? canonical : Object.hasOwn(user, kind) ? kind : canonical === 'tests' && Object.hasOwn(user, 'mechanical') ? 'mechanical' : null;
+  const override = ruleKey === null ? undefined : user[ruleKey];
   const fromCatalog = catalogInfo?.catalog?.allocation[canonical];
-  const fallback = config.kinds[canonical] || (canonical === 'tests' ? config.kinds.mechanical : undefined) || (canonical === 'hardest' || canonical === 'security' ? config.kinds.review : canonical === 'bulk' ? config.kinds.mechanical : undefined);
+  const fallback = installed.filter(p => p.installed && p.authState === 'signed in').flatMap(p => {
+    const preset = { provider: p.provider, model: config.providers[p.provider].model, effort: config.providers[p.provider].effort }, choices = [preset];
+    const seen = new Set([groupForModel(p.provider, preset.model)]);
+    const models = [...(catalogInfo?.catalog?.providers?.[p.provider]?.models || [])].sort((a,b)=>a.relativeAllowanceCost-b.relativeAllowanceCost);
+    for (const model of models) {
+      const group = groupForModel(p.provider, model.id);
+      if (!group || seen.has(group) || p.modelsListed && !p.models.includes(model.id)) continue;
+      seen.add(group); choices.push({provider:p.provider, model:model.id, effort:model.efforts.includes(preset.effort)?preset.effort:model.efforts[0]||preset.effort});
+    }
+    return choices;
+  });
   const ordered = override || fromCatalog || fallback;
-  const allocationSource = override ? 'user configuration' : fromCatalog ? 'skill catalog' : 'built-in defaults';
+  const allocationSource = override ? 'project rule' : fromCatalog ? 'skill catalog' : 'most allowance left';
   const warnings = [...new Set([...(catalogInfo?.status.stale ? [catalogInfo.status.line] : []), ...installed.flatMap(p => p.catalogWarnings || [])])];
-  if (!ordered) throw new Error(`Unknown work kind: ${kind}`);
   const rejected = [], candidates = [];
   for (const choice of ordered) {
     const r = readings.find(x => x.provider === choice.provider) || { unknown: true, windows: [] };
@@ -32,10 +42,10 @@ export function pick(config, kind, installed, readings, notFamily, catalogInfo) 
     if (reason) rejected.push({ provider: choice.provider, model: choice.model, group: groupId, family, reason, tightest });
     else candidates.push({ ...choice, group: groupId, family, tightest, unknown: tightest === null, stale: !!(group?.stale ?? r.stale), windows });
   }
-  if (!candidates.length) return { selected: null, reason: 'No eligible provider.', candidates, rejected, warnings, allocationSource };
+  if (!candidates.length) return { selected: null, reason: `No eligible provider${override ? ` under project rule for ${kind}` : ` for ${kind}`}. ${rejected.map(r => `${r.provider}/${r.model}: ${r.reason}`).join('; ')}`, candidates, rejected, warnings, allocationSource };
   let selected = candidates[0];
   const known = candidates.filter(c => c.tightest !== null);
   const least = known.reduce((best, c) => !best || c.tightest < best.tightest ? c : best, null);
-  if (selected.tightest !== null && least && selected.tightest - least.tightest > config.usage.balancePoints) selected = least;
-  return { selected, reason: `${selected.provider}/${selected.model} effort=${selected.effort}: ${selected === candidates[0] ? 'configured first eligible choice' : `usage gap exceeds ${config.usage.balancePoints} points`}; ${candidates.map(c => `${c.provider}/${c.model}[${c.group || 'unmapped'}]=${c.tightest === null ? 'unknown' : `${c.tightest}%`}${c.stale ? ' (stale)' : ''}`).join(', ')}.`, candidates, rejected, warnings, allocationSource };
+  if (allocationSource === 'most allowance left' && least || selected.tightest !== null && least && selected.tightest - least.tightest > config.usage.balancePoints) selected = least;
+  return { selected, reason: `${selected.provider}/${selected.model} effort=${selected.effort}: ${allocationSource}; ${selected === candidates[0] ? 'first eligible choice' : allocationSource === 'most allowance left' ? 'least-used known allowance' : `usage gap exceeds ${config.usage.balancePoints} points`}; ${candidates.map(c => `${c.provider}/${c.model}[${c.group || 'unmapped'}]=${c.tightest === null ? 'unknown' : `${c.tightest}%`}${c.stale ? ' (stale)' : ''}`).join(', ')}.`, candidates, rejected, warnings, allocationSource };
 }

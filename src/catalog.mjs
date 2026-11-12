@@ -21,7 +21,7 @@ export function validateCatalog(c) {
     for (const m of p.models) {
       if (!string(m.id) || ids.has(m.id)) fail(`duplicate/empty model id for ${name}.`); ids.add(m.id);
       if (m.group !== null && !string(m.group) || m.released !== null && !dateValid(m.released)) fail(`invalid group/release for ${m.id}.`);
-      if (!['frontier', 'strong', 'fast'].includes(m.tier) || !Number.isSafeInteger(m.contextWindow) || m.contextWindow < 0 || !strings(m.efforts) || !Number.isFinite(m.relativeAllowanceCost) || m.relativeAllowanceCost <= 0 || !strings(m.bestFor) || !strings(m.weakAt) || !Array.isArray(m.evidence) || !m.evidence.every(e => string(e) || e && typeof e === 'object' && !Array.isArray(e))) fail(`invalid model details for ${m.id}.`);
+      if (m.tier !== null && !['frontier', 'strong', 'fast'].includes(m.tier) || !Number.isSafeInteger(m.contextWindow) || m.contextWindow < 0 || !strings(m.efforts) || !Number.isFinite(m.relativeAllowanceCost) || m.relativeAllowanceCost <= 0 || !strings(m.bestFor) || !strings(m.weakAt) || !Array.isArray(m.evidence) || !m.evidence.every(e => string(e) || e && typeof e === 'object' && !Array.isArray(e))) fail(`invalid model details for ${m.id}.`);
     }
   }
   if (Object.keys(c.providers).some(p => !providerNames.includes(p))) fail('unsupported provider.');
@@ -60,10 +60,23 @@ export async function loadCatalog(root, config, now = Date.now()) {
 const cell = s => String(s).replace(/\|/g, '\\|').replace(/[\r\n]/g, ' ');
 export function catalogBlock(c) {
   const provisional = c.verifiedBy.startsWith('initial,');
-  const lines = ['<!-- catalog:start -->', '| Provider | Callable model ID | Tier | Best for |', '| --- | --- | --- | --- |'];
-  for (const [provider, data] of Object.entries(c.providers)) for (const model of data.models) lines.push(`| ${provider} | \`${cell(model.id)}\` | ${model.tier}${provisional ? '?' : ''} | ${cell(model.bestFor.join('; ') || 'Not confirmed')} |`);
-  lines.push('', '| Provider | Remaining allowance |', '| --- | --- |');
-  for (const [provider, data] of Object.entries(c.providers)) lines.push(`| ${provider} | ${cell(data.usageCommand || 'Unknown; local turn token/cost gauge only')} |`);
+  const lines = ['<!-- catalog:start -->', '| Provider | Model / callable ID pattern | Efforts | Tier | Best for | Allowance group |', '| --- | --- | --- | --- | --- | --- |'];
+  for (const [provider, data] of Object.entries(c.providers)) {
+    const families = new Map();
+    for (const model of data.models) {
+      const variant = /^(.*)-(none|minimal|low|medium|high|xhigh|max)$/.exec(model.id);
+      const base = variant ? variant[1] : model.id, key = `${base}\0${model.group || ''}`;
+      if (!families.has(key)) families.set(key, { base, variants: !!variant, group: model.group, efforts: new Set(), tiers: new Set(), best: new Set() });
+      const row = families.get(key);
+      for (const effort of variant ? [variant[2]] : model.efforts) row.efforts.add(effort);
+      row.tiers.add(model.tier === null ? 'unknown' : model.tier + (provisional ? '?' : ''));
+      for (const best of model.bestFor) row.best.add(best);
+    }
+    const order = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
+    for (const row of families.values()) lines.push(`| ${provider} | \`${cell(row.base)}${row.variants ? '-<effort>' : ''}\` | ${cell([...row.efforts].sort((a,b) => order.indexOf(a)-order.indexOf(b)).join(' / ') || 'unknown')} | ${cell([...row.tiers].join(' / '))} | ${cell([...row.best].slice(0, 2).join('; ') || 'Not confirmed')} | ${cell(row.group || 'provider pool')} |`);
+  }
+  lines.push('', '**How to read what is left**', '| Provider | Command or source | Windows |', '| --- | --- | --- |');
+  for (const [provider, data] of Object.entries(c.providers)) lines.push(`| ${provider} | ${cell(data.usageCommand || 'Unknown; local token/cost gauge')} | ${cell([...new Set(data.plans.flatMap(p => p.windows))].join(' / ') || 'unknown')} |`);
   lines.push('', '| Work | First choice | Second choice |', '| --- | --- | --- |');
   const show = choice => choice ? `\`${choice.provider}/${choice.model}\` (${choice.effort})` : 'None configured';
   for (const [kind, choices] of Object.entries(c.allocation)) lines.push(`| ${cell(kind)} | ${show(choices[0])} | ${show(choices[1])} |`);

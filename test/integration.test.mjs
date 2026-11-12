@@ -26,6 +26,8 @@ for (const provider of ['codex', 'agy', 'claude']) {
   });
   test(`${provider}: rate-limit failure is learned even with exit zero`, async t => {
     const s = await scratch(t);
+    s.config.kinds = { server: ['codex','agy','claude'].map(p => ({provider:p,model:s.config.providers[p].model,effort:s.config.providers[p].effort})).concat([{provider:'agy',model:'claude-example',effort:'low'}]) };
+    await fs.writeFile(path.join(s.root,'roster.config.json'),JSON.stringify(s.config));
     await s.run('start', 'limited', '--provider', provider, '--brief', await s.brief('LIMIT ZERO_EXIT'));
     const r = await s.fail('wait', 'limited', '--timeout', '8s'); assert.equal(r.ok, false);
     const readings = await s.run('usage', '--refresh'), providerReading = readings.find(r => r.provider === provider);

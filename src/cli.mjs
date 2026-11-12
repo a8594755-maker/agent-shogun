@@ -10,7 +10,7 @@ import * as sessions from './sessions.mjs';
 import { loadCatalog, setCatalog, modelDrift } from './catalog.mjs';
 
 const help = `roster 0.1.0 — coding CLI workers and allowance-aware dispatch
-Usage: roster <command> [options] [--json]
+Usage: roster [--config <path>] <command> [options] [--json]
   init
   providers
   usage [--refresh]
@@ -32,19 +32,28 @@ const definitions = {
   send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true }
 };
 export function parseArgs(argv) {
-  const leadingJson = argv[0] === '--json';
-  const [command, ...rest] = leadingJson ? argv.slice(1) : argv;
+  const args = [...argv]; let leadingJson = false, leadingConfig;
+  while (args[0] === '--json' || args[0] === '--config' || args[0]?.startsWith('--config=')) {
+    const arg = args.shift();
+    if (arg === '--json') leadingJson = true;
+    else {
+      if (leadingConfig !== undefined) throw new Error('Duplicate --config');
+      leadingConfig = arg === '--config' ? args.shift() : arg.slice(9);
+      if (!leadingConfig || leadingConfig.startsWith('--')) throw new Error('--config needs a path.');
+    }
+  }
+  const [command, ...rest] = args;
   if (!command || ['--help', '-h', 'help'].includes(command)) return { command: 'help', json: argv.includes('--json'), positional: [], options: {}, sequence: [] };
   if (!definitions[command]) throw new Error(`Unknown command: ${command}`);
-  const options = {}, positional = [], sequence = []; let json = leadingJson;
+  const options = leadingConfig === undefined ? {} : { config: leadingConfig }, positional = [], sequence = []; let json = leadingJson;
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i];
     if (arg === '--') { positional.push(...rest.slice(i + 1)); break; }
     if (arg === '--json') { json = true; continue; }
     if (!arg.startsWith('--')) { positional.push(arg); continue; }
     const equal = arg.indexOf('='), key = arg.slice(2, equal < 0 ? undefined : equal);
-    if (!Object.hasOwn(definitions[command], key)) throw new Error(`Unknown option: --${key}`);
-    const needsValue = definitions[command][key];
+    if (key !== 'config' && !Object.hasOwn(definitions[command], key)) throw new Error(`Unknown option: --${key}`);
+    const needsValue = key === 'config' || definitions[command][key];
     let value = true;
     if (needsValue) {
       value = equal < 0 ? rest[++i] : arg.slice(equal + 1);
@@ -108,7 +117,7 @@ export async function main(argv = process.argv.slice(2)) {
     const parsed = parseArgs(argv); json = parsed.json;
     const { command, options: o, positional: p } = parsed;
     if (command === 'help') { console.log(json ? JSON.stringify({ help }) : help); return; }
-    const root = await repoRoot().catch(e => { if (command === 'catalog') return process.cwd(); throw e; }), config = await loadConfig(root);
+    const root = await repoRoot().catch(e => { if (command === 'catalog') return process.cwd(); throw e; }), config = await loadConfig(root, { cwd: process.cwd(), configPath: o.config });
     const catalogInfo = await loadCatalog(root, config);
     const providers = async () => {
       const result = await Promise.all(providerNames.map(name => probe(name, config, adapters[name])));
@@ -128,7 +137,7 @@ export async function main(argv = process.argv.slice(2)) {
         break;
       case 'usage':
         if (p[0] === 'set') { arity(p, 2); if (o.refresh) throw new Error('--refresh is for reading usage.'); value = await setUsage(root, p[1], windowsFrom(parsed.sequence), o.plan, o.group); }
-        else { arity(p, 0); if (parsed.sequence.some(([k]) => k !== 'refresh')) throw new Error('Reading options require usage set.'); const probes = await providers(); value = (await usage(root, config, { refresh: o.refresh })).map(r => ({ ...r, catalogWarnings: probes.find(p => p.provider === r.provider)?.catalogWarnings || [] })); }
+        else { arity(p, 0); if (parsed.sequence.some(([k]) => !['refresh', 'config'].includes(k))) throw new Error('Reading options require usage set.'); const probes = await providers(); value = (await usage(root, config, { refresh: o.refresh })).map(r => ({ ...r, catalogWarnings: probes.find(p => p.provider === r.provider)?.catalogWarnings || [] })); }
         break;
       case 'pick': arity(p, 0); if (o['not-family']) checkProvider(o['not-family']); value = pick(config, requireOption(o, 'kind'), await providers(), await usage(root, config), o['not-family'], catalogInfo); if (!value.selected) process.exitCode = 1; break;
       case 'start': arity(p, 1); requireOption(o, 'provider'); value = await sessions.start(root, config, p[0], o, await fs.readFile(path.resolve(requireOption(o, 'brief')), 'utf8')); break;
