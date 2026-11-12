@@ -1,0 +1,13 @@
+{
+  "status": "SUCCESS",
+  "command": { "name": "usage", "data": { "groups": [
+    { "name": "Gemini Models", "buckets": [
+      { "id": "gemini-weekly", "window": "weekly", "remaining_fraction": 0.4588, "reset_time": "2099-11-18T02:03:26Z" },
+      { "id": "gemini-5h", "window": "5h", "remaining_fraction": 0.822, "reset_time": "2099-11-12T20:21:40Z" }
+    ] },
+    { "name": "Claude and GPT models", "buckets": [
+      { "id": "3p-weekly", "window": "weekly", "remaining_fraction": 1, "reset_time": "2099-11-18T02:03:26Z" },
+      { "id": "3p-5h", "window": "5h", "remaining_fraction": 1, "reset_time": "2099-11-12T20:21:40Z" }
+    ] }
+  ] } }
+}

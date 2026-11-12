@@ -13,7 +13,7 @@ Usage: roster <command> [options] [--json]
   init
   providers
   usage [--refresh]
-  usage set <provider> --window <label> --used <percent> --resets <ISO> [--window ...] [--plan <name>]
+  usage set <provider> --window <label> --used <percent> --resets <ISO> [--window ...] [--plan <name>] [--group <id>]
   pick --kind <ui|server|review|mechanical|research> [--not-family <provider>]
   start <name> --provider <p> --brief <file> [--model <m>] [--effort <e>]
         [--dir <path> | --worktree <path> --branch <b> --base <ref>] [--access safe|full] [--web]
@@ -24,7 +24,7 @@ Usage: roster <command> [options] [--json]
   stop <name>
   review <name> --by <provider> [--brief <file>]`;
 const definitions = {
-  init: {}, providers: {}, usage: { refresh: false, window: true, used: true, resets: true, plan: true },
+  init: {}, providers: {}, usage: { refresh: false, window: true, used: true, resets: true, plan: true, group: true },
   pick: { kind: true, 'not-family': true },
   start: { provider: true, model: true, effort: true, brief: true, dir: true, worktree: true, branch: true, base: true, access: true, web: false },
   send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true }
@@ -90,9 +90,9 @@ function human(command, value) {
   if (command === 'pick') return value.reason;
   if (command === 'help') return help;
   if (command === 'usage' && Array.isArray(value)) {
-    return table(value.flatMap(r => (r.windows?.length ? r.windows : [{ label: 'unknown' }]).map(w => ({ provider: r.provider, window: w.label, used: w.usedPercent == null ? '?' : `${w.usedPercent}%`, resets: w.resetsAt, plan: r.plan, age: `${Math.round(r.ageSeconds || 0)}s${r.stale ? ' stale' : ''}`, source: r.source || r.reason, state: r.limited ? `limited since ${r.limitedSince}: ${r.lastMessage}` : r.unknown ? r.reason : 'known', tokens5h: r.tokenGauge.last5Hours, tokens7d: r.tokenGauge.last7Days }))), ['provider', 'window', 'used', 'resets', 'plan', 'age', 'source', 'state', 'tokens5h', 'tokens7d']);
+    return table(value.flatMap(r => r.groups.flatMap(g => (g.windows.length ? g.windows : [{ label: 'unknown' }]).map(w => ({ provider: r.provider, group: g.id, window: w.label, used: w.usedPercent == null ? '?' : `${w.usedPercent}%`, resets: w.resetsAt, plan: r.plan, age: `${Math.round(w.ageSeconds ?? r.ageSeconds ?? 0)}s${w.stale || g.stale ? ' stale' : ''}`, source: w.source || r.source, state: g.limited ? `limited since ${g.limitedSince}: ${g.lastMessage}` : g.unknown ? g.reason : 'known', tokens5h: g.tokenGauge.last5Hours, tokens7d: g.tokenGauge.last7Days })))), ['provider', 'group', 'window', 'used', 'resets', 'plan', 'age', 'source', 'state', 'tokens5h', 'tokens7d']);
   }
-  if (command === 'providers') return table(value.map(r => ({ ...r, installed: r.installed ? 'yes' : 'no', models: r.models.length ? r.models.join(', ') : `${r.configuredModel || '-'} (${r.modelsSource || r.reason})` })), ['provider', 'installed', 'version', 'models']);
+  if (command === 'providers') return table(value.flatMap(r => (r.models.length ? r.models : [`${r.configuredModel || '-'} (${r.modelsSource || r.reason})`]).map((model, i) => ({ provider: i ? '' : r.provider, installed: i ? '' : r.installed ? 'yes' : 'no', version: i ? '' : r.version, models: model }))), ['provider', 'installed', 'version', 'models']);
   if (command === 'status' || command === 'wait') return table((value.sessions || (Array.isArray(value) ? value : [value])).map(r => ({ ...r, seconds: Math.round(r.seconds), tokens: r.tokens?.total, head: r.head?.slice(0, 12) })), ['name', 'state', 'error', 'provider', 'model', 'turn', 'seconds', 'tokens', 'head', 'uncommitted', 'answer']);
   const rows = Array.isArray(value) ? value : [value];
   return table(rows, [...new Set(rows.flatMap(Object.keys))]);
@@ -110,7 +110,7 @@ export async function main(argv = process.argv.slice(2)) {
       case 'init': arity(p, 0); value = await init(root); break;
       case 'providers': arity(p, 0); value = await providers(); break;
       case 'usage':
-        if (p[0] === 'set') { arity(p, 2); if (o.refresh) throw new Error('--refresh is for reading usage.'); value = await setUsage(root, p[1], windowsFrom(parsed.sequence), o.plan); }
+        if (p[0] === 'set') { arity(p, 2); if (o.refresh) throw new Error('--refresh is for reading usage.'); value = await setUsage(root, p[1], windowsFrom(parsed.sequence), o.plan, o.group); }
         else { arity(p, 0); if (parsed.sequence.some(([k]) => k !== 'refresh')) throw new Error('Reading options require usage set.'); value = await usage(root, config, { refresh: o.refresh }); }
         break;
       case 'pick': arity(p, 0); if (o['not-family']) checkProvider(o['not-family']); value = pick(config, requireOption(o, 'kind'), await providers(), await usage(root, config), o['not-family']); if (!value.selected) process.exitCode = 1; break;

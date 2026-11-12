@@ -17,7 +17,7 @@ const installed = ['codex', 'agy', 'claude'].map(provider => ({ provider, instal
 const readings = (codex, agy, claude) => [codex, agy, claude].map((percent, i) => ({ provider: installed[i].provider, windows: percent === null ? [] : [{ usedPercent: percent, label: 'weekly' }] }));
 test('pick follows kind order and reports numbers', () => {
   const p = pick(defaults, 'ui', installed, readings(20, 30, 40));
-  assert.equal(p.selected.provider, 'claude'); assert.match(p.reason, /claude=40%/);
+  assert.equal(p.selected.provider, 'claude'); assert.match(p.reason, /claude\/sonnet\[default\]=40%/);
 });
 test('pick rebalances a gap greater than 25 points', () => assert.equal(pick(defaults, 'server', installed, readings(60, 20, 30)).selected.provider, 'agy'));
 test('pick retains preference for exactly 25 points', () => assert.equal(pick(defaults, 'server', installed, readings(45, 20, 30)).selected.provider, 'codex'));
@@ -25,7 +25,7 @@ test('pick excludes other-family author', () => assert.equal(pick(defaults, 'rev
 test('pick excludes missing, limited and ceiling providers', () => {
   const r = readings(90, 1, 5); r[1].limited = true;
   const p = pick(defaults, 'review', installed.map(x => ({ ...x, installed: x.provider !== 'claude' })), r);
-  assert.equal(p.selected, null); assert.equal(p.rejected.length, 3);
+  assert.equal(p.selected, null); assert.equal(p.rejected.length, 4);
 });
 test('pick evaluates tightest window', () => {
   const r = readings(2, 20, 10); r[0].windows.push({ usedPercent: 95 });

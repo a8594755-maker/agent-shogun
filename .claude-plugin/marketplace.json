@@ -1,0 +1,13 @@
+{
+  "name": "roster-plugins",
+  "description": "The roster dispatch skill for coding agents",
+  "owner": { "name": "Roster Contributors" },
+  "plugins": [
+    {
+      "name": "roster",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Allowance-aware coding worker dispatch"
+    }
+  ]
+}

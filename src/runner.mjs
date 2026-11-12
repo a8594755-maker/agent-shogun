@@ -7,6 +7,7 @@ import { limitedMessage } from './adapters/common.mjs';
 import { childEnv, agySettings } from './guards.mjs';
 import { readJson, writeJson, sleep, gitState, exec } from './io.mjs';
 import { turnDir, sessionDir } from './sessions.mjs';
+import { groupForModel } from './allowance.mjs';
 
 async function run() {
   const [, , root, name, n] = process.argv;
@@ -70,9 +71,10 @@ async function run() {
     else if (exitCode !== 0) failure ||= `Provider exited ${exitCode}`;
     else if (!parsed.ok) failure ||= parsed.error || 'Provider did not report a successful completed turn.';
     const limitText = [parsed.error, parsed.ok ? '' : parsed.answer, stderrTail, stdoutTail].filter(Boolean).join('\n');
-    const limited = !!failure && limitedMessage(limitText);
+    const parsedFailure = adapters[meta.provider].parseFailure?.(stderrTail);
+    const limited = !!failure && (!!parsedFailure?.limited || limitedMessage(limitText));
     const messageLine = limitText.split(/\r?\n/).find(limitedMessage) || '';
-    const result = { provider: meta.provider, state: failure ? 'failed' : 'done', error: failure, exitCode, startedAt: meta.startedAt, endedAt: new Date().toISOString(), sessionId: parsed.sessionId || meta.sessionId, tokens: parsed.usage || { total: 0 }, details: parsed.details, limited, ...(limited ? { limitMessage: messageLine.slice(0, 500) } : {}), ...await gitState(meta.directory) };
+    const result = { provider: meta.provider, model: meta.model, group: groupForModel(meta.provider, meta.model), state: failure ? 'failed' : 'done', error: failure, exitCode, startedAt: meta.startedAt, endedAt: new Date().toISOString(), sessionId: parsed.sessionId || meta.sessionId, tokens: parsed.usage || { total: 0 }, details: parsed.details, limited, ...(limited ? { limitMessage: (parsedFailure?.message || messageLine).slice(0, 500), limitResetsAt: parsedFailure?.resetsAt || null } : {}), ...await gitState(meta.directory) };
     if ((await readJson(path.join(dir, 'result.json'), null))?.error === 'interrupted') return;
     await writeJson(path.join(dir, 'result.json'), result);
     await fsp.appendFile(path.join(sessionDir(root, name), 'turns.jsonl'), JSON.stringify({ turn: meta.turn, ...result }) + '\n');

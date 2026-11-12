@@ -1,0 +1,8 @@
+{
+  "model": { "display_name": "Example model" },
+  "workspace": { "current_dir": "/private/not-for-cache" },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 23.5, "resets_at": 4098175200 },
+    "seven_day": { "used_percentage": 85, "resets_at": 4098693600 }
+  }
+}

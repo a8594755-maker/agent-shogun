@@ -1,0 +1,12 @@
+[
+  {
+    "provider": "codex", "source": "example-cli",
+    "usage": {
+      "primary": { "usedPercent": 21, "windowMinutes": 300, "resetsAt": "2099-11-12T20:00:00Z" },
+      "secondary": { "usedPercent": 48, "windowMinutes": 10080, "resetsAt": "2099-11-18T20:00:00Z" },
+      "updatedAt": "2026-11-12T12:00:00Z",
+      "identity": { "plan": "fixture-plan", "account": "do-not-persist" }
+    }
+  },
+  { "provider": "claude", "error": "example error", "errorKind": "unavailable" }
+]

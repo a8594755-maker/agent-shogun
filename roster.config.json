@@ -31,6 +31,11 @@
       },
       {
         "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
+        "effort": "low"
+      },
+      {
+        "provider": "agy",
         "model": "gemini-3.8-flash-low",
         "effort": "medium"
       },
@@ -55,6 +60,11 @@
         "provider": "agy",
         "model": "gemini-3.8-flash-low",
         "effort": "medium"
+      },
+      {
+        "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
+        "effort": "low"
       }
     ],
     "mechanical": [
@@ -69,6 +79,11 @@
         "effort": "medium"
       },
       {
+        "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
+        "effort": "low"
+      },
+      {
         "provider": "claude",
         "model": "sonnet",
         "effort": "medium"
@@ -79,6 +94,11 @@
         "provider": "agy",
         "model": "gemini-3.8-flash-low",
         "effort": "medium"
+      },
+      {
+        "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
+        "effort": "low"
       },
       {
         "provider": "codex",
@@ -95,6 +115,12 @@
       {
         "provider": "agy",
         "model": "gemini-3.8-flash-low",
+        "effort": "low",
+        "web": true
+      },
+      {
+        "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
         "effort": "low",
         "web": true
       },
@@ -117,6 +143,8 @@
     "balancePoints": 25,
     "suppliedMaxAgeMinutes": 30,
     "cacheSeconds": 30,
-    "sourceMaxAgeMinutes": 30
+    "sourceMaxAgeMinutes": 30,
+    "externalCommand": null,
+    "externalTimeoutMs": 15000
   }
 }

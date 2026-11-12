@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import readline from 'node:readline';
 import { tokens } from './common.mjs';
-import { readCodexUsage } from '../codex-usage.mjs';
+import { readCodexAllowance } from '../codex-usage.mjs';
 
 export default {
   name: 'codex',
@@ -24,5 +24,5 @@ export default {
     }
     return { sessionId, usage: tokens(usage), answer, ok: completed && !error, error };
   },
-  readUsage: readCodexUsage
+  readUsage: readCodexAllowance
 };

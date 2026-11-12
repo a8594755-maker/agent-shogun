@@ -64,7 +64,7 @@ never a shell assembled from user text. `--flag=value` is supported.
 | `init` | Write `roster.config.json` if absent and add `.roster/` to `.gitignore`; preserve an existing config. |
 | `providers` | Find binaries, probe `--version`, list models when a listing command exists. Missing CLIs do not break other providers. |
 | `usage [--refresh]` | Show windows, percentage, resets, plan, source, reading age, staleness, learned limits, and local token gauges. Refresh bypasses the source cache. |
-| `usage set <provider> --window <label> --used <0–100> --resets <ISO> [--plan <text>]` | Record a dashboard/planner reading. Repeat each complete `--window … --used … --resets …` group. Other saved windows are retained. |
+| `usage set <provider> --window <label> --used <0–100> --resets <ISO> [--plan <text>] [--group <id>]` | Record a dashboard/planner reading. Repeat complete window groups. Other saved windows are retained. Antigravity groups: `gemini` (default) or `third-party`; other providers use `default`. |
 | `pick --kind <ui\|server\|review\|mechanical\|research> [--not-family <provider>]` | Recommend provider, model, effort, and research web request with the numbers and exclusions used. Exit 1 if none qualify. |
 | `start <name> --provider <p> --brief <file>` | Start in the background, returning a name and `running` state. Optional `--model`, `--effort`, `--dir`, `--access safe\|full`, and `--web`. |
 | `start … --worktree <path> --branch <branch> [--base <ref>]` | Create a linked worktree and branch if absent; otherwise verify the existing worktree's branch. Base defaults to HEAD. Cannot combine with `--dir`. |
@@ -139,32 +139,125 @@ event in the first file containing one. Window duration determines the label,
 so primary/secondary can swap. Credits and plan are preserved. `readAt` is the
 scan time, `observedAt` the event timestamp (file mtime when absent).
 
-Antigravity has no known stable local allowance source. Claude accepts supplied
-dashboard/planner readings and has no automatic local source. Both learn quota
-errors from failed turns and show tokens from local roster receipts in the last
-5 hours and 7 days. These gauges exclude work outside roster and are **not**
-subscription percentages. Cached, input and output counts follow provider
-reporting; they are not interchangeable billing units.
+If the file reading is missing or older than `usage.sourceMaxAgeMinutes`, the
+same Codex adapter starts a temporary `codex app-server --stdio`, initializes
+the connection, calls only `account/rateLimits/read`, then stops that server.
+Its camelCase window, plan, and credit fields are normalized. If this fallback
+fails, the stale file evidence is retained and labeled. Some plans have only a
+weekly window (verified on this PC); others have both 5-hour and weekly windows.
+See the [OpenAI app-server protocol](https://developers.openai.com/codex/app-server).
 
-All providers accept `usage set`. The newest supplied reading or automatic
-observation wins; supplied data wins when the automatic source is unknown.
-Supplied windows retain their individual timestamps when another window is
-updated. Readings become stale after 30 minutes by default. Expired windows stay
-visible but are excluded from percentage comparison; no zero-percent reset is
-invented. Stale, non-expired readings remain conservative inputs and are marked
-stale. Unknown allowance stays explicitly unknown and remains eligible.
+Antigravity runs `agy --print /usage --output-format json`, a built-in command
+with no model turn. It converts **remaining** fractions into percentages used:
+`usedPercent = (1 - remaining_fraction) * 100`. The binary is spawned directly
+with an argument array, avoiding Git Bash/MSYS conversion of `/usage` into a path.
+This call never passes `--disable-slash-commands`; ordinary worker turns still do.
 
-A learned limit remains until a later successful roster turn or a newer supplied
-reading below the ceiling with future resets. It is not automatically cleared
-after a guessed reset. `--refresh` rescans known local sources, without querying
-provider billing APIs or starting an inference turn.
+Allowance JSON is `provider -> groups[] -> windows[]`:
+
+| Provider | Group ID | Matching model prefixes |
+| --- | --- | --- |
+| codex | `default` | All Codex models |
+| agy | `gemini` | `gemini-*` (Gemini Models) |
+| agy | `third-party` | `claude-*`, `gpt-*` (Claude and GPT models) |
+| claude | `default` | All native Claude models; manually supplied model windows can narrow this |
+
+An unmapped Antigravity model has unknown allowance; it never borrows a different
+group's reading. Default preference arrays include Claude Sonnet through
+Antigravity as a separate candidate. Group allowances, limits, and local token
+gauges stay separate. Native Claude allowance is not Antigravity Claude allowance.
+
+Claude reads only `~/.roster/claude-usage.json`, written by the optional script
+below. Its documented status-line input has `rate_limits.five_hour` and
+`rate_limits.seven_day` for subscriptions, after the first response; each window
+can be absent. Per-model weekly limits are not available there. The tool does
+**not** use the undocumented OAuth usage endpoint, provider credential stores,
+or browser cookie stores. See [Claude's status-line documentation](https://code.claude.com/docs/en/statusline).
+
+All providers accept `usage set`. Windows merge individually: a newer automatic
+observation replaces the same label, while a supplied `weekly:opus` window remains
+alongside automatic general windows. Model labels constrain only matching models
+(including tier aliases such as `opus` / `claude-opus-*`). Supplied windows retain
+their own timestamps and become stale after 30 minutes by default. Expired windows
+stay visible but are excluded from comparisons; no zero-percent reset is invented.
+Stale non-expired readings remain conservative inputs. Unknown stays explicit.
+
+Failed Antigravity turns with exit 3 and `AGY_ERROR` JSON are parsed for 429 /
+`RESOURCE_EXHAUSTED`, short message, and optional `Resets in 1h1m35s` text. Missing
+reset text remains unknown. Learned limits affect only the turn's model group.
+They clear after a reported reset, a later successful turn in that group, or a
+newer supplied reading below the ceiling with a future reset. Legacy receipts
+without model/group information conservatively apply to the whole provider.
+Local token gauges exclude work outside roster and are **not** subscription
+percentages or interchangeable billing units. `--refresh` bypasses the source
+cache and can perform the quota commands above, but never starts an inference turn.
 
 `pick` starts with the configured ordered preferences. It drops missing
-providers, learned limits, any non-expired window **at or above 90%**, and the
-excluded family. The first eligible choice wins unless its tightest percentage
+providers, group limits, any applicable non-expired window **at or above 90%**, and
+the excluded provider/underlying family. Claude through Antigravity is in the
+Claude family; GPT through Antigravity is in the Codex/OpenAI family. The first eligible choice wins unless its tightest percentage
 is more than 25 points above the least-full known candidate. Unknown values
 never masquerade as 0%. JSON includes candidates, per-window numbers and rejected
 providers. The current model is a preference, not a promise of model availability.
+
+### Optional Claude status-line cache
+
+Manually add this one line to Claude Code's settings, substituting the clone path:
+
+```json
+"statusLine": { "type": "command", "command": "node \"/path/to/roster/scripts/claude-statusline-cache.mjs\"" }
+```
+
+On Windows use an absolute path with forward slashes, for example
+`C:/tools/roster/scripts/claude-statusline-cache.mjs`. Roster never edits Claude
+settings and does not install this hook. The script writes only the documented
+two rate-limit windows and a timestamp, atomically; it never saves the full stdin
+payload. Before a response supplies limits, the previous cache is left intact,
+with its original age. Without a usable cache or manual reading, usage is unknown.
+
+To keep an existing status line, append its executable and arguments after `--`:
+
+```json
+"statusLine": { "type": "command", "command": "node \"/path/to/roster/scripts/claude-statusline-cache.mjs\" -- node \"/path/to/existing-status.mjs\"" }
+```
+
+The existing command receives identical stdin and supplies the displayed output.
+Arguments are spawned directly, without a shell; shell expressions require an
+explicit shell executable chosen by the user. Generic usage appears when there
+is no pass-through command. Record per-model weekly limits with, for example,
+`roster usage set claude --window weekly:opus --used 85 --resets 2026-11-14T14:00:00Z`.
+
+### Optional external source
+
+`usage.externalCommand` is an opt-in executable/argument array, default `null`.
+If configured, roster runs it once per source-cache interval, directly without
+a shell, and maps its JSON allowance rows. An example external tool is
+[Win-CodexBar](https://github.com/nesszer/Win-CodexBar); it is **not bundled or
+recommended**, and roster does not invoke it by default:
+
+```json
+"usage": { "externalCommand": ["codexbar-cli", "usage", "-p", "all", "-f", "json"] }
+```
+
+External programs choose their own data-access methods, possibly including
+credential/cookie stores or undocumented endpoints. This is an explicit user
+choice, separate from roster's built-in readers. Do not configure an external
+program whose behavior you have not accepted. No external usage command was
+installed or run on this PC for verification.
+
+Supported JSON is an array (or `{ "providers": [...] }`) of provider rows with
+either roster-style `groups[].windows[]`, or CodexBar-style
+`usage.primary/secondary/tertiary` containing `usedPercent`, `windowMinutes`, and
+`resetsAt`. Win-CodexBar's `used_percent`, `window_minutes`, `resets_at`,
+`updated_at`, and `login_method` are also mapped; informational windows are ignored.
+The fixture follows its [window serialization](https://github.com/nesszer/Win-CodexBar/blob/main/rust/src/core/rate_window.rs)
+and [usage serialization](https://github.com/nesszer/Win-CodexBar/blob/main/rust/src/core/usage_snapshot.rs).
+Provider `antigravity` maps to `agy`. Only normalized allowance fields
+are cached; opaque identities and other fields are discarded. A flat Antigravity
+row applies to Gemini only; use explicit groups for its third-party allowance.
+Multiple rows for one provider are ambiguous and rejected, so select one account
+in the external command. Failed/missing external readings fall back to the built-in
+reader. Timeout is controlled by `usage.externalTimeoutMs` (15000 by default).
 
 ## Configuration
 
@@ -181,12 +274,14 @@ resolve from the command's working directory; absolute paths are recommended.
 | `guards.env` | Map of environment names to replacement strings. Set to `false` to disable overrides; set an entry to `null` to remove that variable from the child. Use dummy values, never secrets in shared config. |
 | `guards.antigravityDeny` | `true`; false disables the entire extra deny list, including web denies. |
 | `briefHeader` | Executor rules: assigned directory/branch only; never push, deploy or publish; run type check/tests until green; never weaken tests. Replace with text as needed. |
-| `kinds.<kind>` | Ordered `{provider, model, effort, web?}` arrays. ui: claude, agy, codex; server: codex, claude, agy; mechanical: codex, agy, claude; review: agy, codex, claude; research: agy, claude, codex with web requested. |
+| `kinds.<kind>` | Ordered `{provider, model, effort, web?}` arrays. ui starts with native Claude then Claude through agy; server/mechanical start with Codex; review/research start with agy Gemini. Every kind also includes agy's `claude-sonnet-5-5-low` as a separate candidate. Research requests web. |
 | `usage.ceiling` | 90; at-or-above excludes a provider. |
 | `usage.balancePoints` | 25; strictly greater gap allows rebalancing. |
 | `usage.suppliedMaxAgeMinutes` | 30; age limit for dashboard/planner readings. |
 | `usage.sourceMaxAgeMinutes` | 30; age limit for automatic observations. |
 | `usage.cacheSeconds` | 30; cached automatic source lifetime. `--refresh` bypasses it. |
+| `usage.externalCommand` | `null`; optional executable/argument array providing external allowance JSON. |
+| `usage.externalTimeoutMs` | 15000; external-command time limit. |
 
 Provider versions are probed with `--version`. Antigravity exposes `models`;
 the checked Codex and Claude CLIs have no model-list command, so roster labels
@@ -236,15 +331,61 @@ runner. Windows is verified locally; macOS/Linux require independent execution.
 Add one adapter in `src/adapters/` with `build`, `parse`, and `readUsage`. `build`
 returns an argument array and whether the prompt goes on stdin. `parse` returns
 conversation ID, answer, normalized usage, `ok`, and optional error/details.
-`readUsage` returns `{windows, plan, credits?, source, readAt}` or
+`readUsage` returns `{groups: [{id, name, windows}], plan, credits?, source, readAt}` or
 `{unknown: true, reason}`; a new quota source is a replacement for that function.
 Optional `modelsArgs`/`parseModels` expose model discovery. Register it in the
 adapter index and provider/config lists, add fake-binary lifecycle/error tests,
 and document its access policy. No launcher rewrite should be needed.
 
-The reusable planning workflow is [skill/SKILL.md](skill/SKILL.md).
+The reusable planning workflow is [skills/multi-agent-dispatch/SKILL.md](skills/multi-agent-dispatch/SKILL.md).
+
+## Agent skill and plugin packaging
+
+The canonical Agent Skills directory is `skills/multi-agent-dispatch/`.
+`npm run sync-skill` copies its `SKILL.md` to
+`.agents/skills/multi-agent-dispatch/SKILL.md` for Codex and Antigravity repository
+discovery, without a Windows symlink. A test fails if these files differ. Edit the
+canonical file, then sync; the copy is committed for fresh clones. Agent skills
+do not install the CLI: use `npm link`, or `node <path>/bin/roster.mjs`.
+
+Claude Code has `.claude-plugin/plugin.json` and a one-plugin marketplace at
+`.claude-plugin/marketplace.json`. Use the local clone without a remote URL:
+
+```text
+claude plugin marketplace add /path/to/roster
+claude plugin install roster@roster-plugins
+```
+
+After the owner publishes a repository, a user could instead use
+`/plugin install roster --marketplace <owner>/<repo>` in Claude Code. No remote
+URL is embedded or assumed, and this work does not publish anything. Antigravity's
+root `plugin.json` declares `skills: "./skills"`; after a repository exists its
+documented install form is `agy plugin install <repo url>`. Its installed CLI
+validated this manifest and discovered one skill. The local Claude CLI validated
+both manifests in strict mode with zero errors or warnings. Only confirmed fields
+are included; no optional unconfirmed manifest fields were added.
+
+### Not verified
+
+No plugin was installed in a user's profile and no remote installation was tried.
+Codex/Antigravity automatic discovery and Claude's runtime skill activation have
+not been exercised in a fresh agent session; packaging copies and local manifest
+validation are verified. The Claude status-line hook was **not installed on this
+PC**: cache writes, absent windows, stale age, and pass-through were tested only
+with fixtures in temporary homes. An actual Claude callback is unverified.
+Win-CodexBar integration is tested against mapped fixtures and its public Rust
+serialization, not a live installation. macOS/Linux, live reboot, and real-provider
+full access remain unverified.
 
 ## Real smoke evidence
+
+The usage follow-up on Windows verified live Antigravity `/usage` group readings,
+fresh Codex session-file readings, and a separate app-server quota probe that
+completed and stopped cleanly. The requested human `providers`, `usage`, and
+server/ui/cross-review picks were run with Antigravity's installed bin directory
+added to that shell's PATH. Shared configuration contains no machine-specific
+binary paths. Claude remained unknown because no hook or manual reading was
+installed on this PC.
 
 On Windows, 2026-11-12, one new conversation and one follow-up per provider were
 run in temporary Git repositories using safe access. Codex CLI 0.167.0 with

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { readJson, writeJson, git, gitState, repoRoot, safeName, sleep } from './io.mjs';
 import { checkProvider } from './config.mjs';
 import { findBinary } from './binaries.mjs';
+import { familyForModel } from './allowance.mjs';
 
 const runnerFile = fileURLToPath(new URL('./runner.mjs', import.meta.url));
 export const sessionDir = (root, name) => path.join(root, '.roster', 'sessions', safeName(name));
@@ -160,7 +161,7 @@ export async function answer(root, name, turn) {
 }
 export async function review(root, config, name, by, extra = '') {
   const author = await loadMeta(root, name);
-  if (author.provider === by) throw new Error('Review must use a different provider family.');
+  if (author.provider === by || familyForModel(author.provider, author.model) === familyForModel(by, config.providers[by].model)) throw new Error('Review must use a different provider family and underlying model family.');
   if ((await status(root, name)).state === 'running') throw new Error('Wait for the author turn before reviewing.');
   const authorState = await gitState(author.directory);
   if (!authorState.head || !authorState.branch || authorState.branch !== author.branch || authorState.uncommitted) throw new Error('Review requires the author branch to be unchanged and clean, with a commit.');

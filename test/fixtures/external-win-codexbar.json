@@ -1,0 +1,12 @@
+[
+  {
+    "provider": "codex", "source": "cli",
+    "usage": {
+      "primary": { "used_percent": 17, "window_minutes": 10080, "resets_at": "2099-11-18T20:00:00Z" },
+      "updated_at": "2026-11-12T12:00:00Z",
+      "login_method": "Example subscription",
+      "account_email": "discard@example.invalid"
+    },
+    "cost": null
+  }
+]

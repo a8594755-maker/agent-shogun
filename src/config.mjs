@@ -14,13 +14,13 @@ export const defaults = {
   guards: { blockPush: true, env: { CLOUDFLARE_API_TOKEN: 'roster-deploy-disabled' }, antigravityDeny: true },
   briefHeader: 'Work only in your assigned directory. Commit only on your assigned branch. Never push, deploy, or publish. Run the type check and tests yourself and loop until green. Never weaken an existing test.',
   kinds: {
-    ui: [choice('claude', 'sonnet'), choice('agy', 'gemini-3.8-flash-low'), choice('codex', 'gpt-6-astra', 'low')],
-    server: [choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet'), choice('agy', 'gemini-3.8-flash-low')],
-    mechanical: [choice('codex', 'gpt-6-astra', 'low'), choice('agy', 'gemini-3.8-flash-low'), choice('claude', 'sonnet')],
-    review: [choice('agy', 'gemini-3.8-flash-low'), choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet')],
-    research: [choice('agy', 'gemini-3.8-flash-low', 'low', true), choice('claude', 'sonnet', 'medium', true), choice('codex', 'gpt-6-astra', 'low', true)]
+    ui: [choice('claude', 'sonnet'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('agy', 'gemini-3.8-flash-low'), choice('codex', 'gpt-6-astra', 'low')],
+    server: [choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet'), choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low')],
+    mechanical: [choice('codex', 'gpt-6-astra', 'low'), choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('claude', 'sonnet')],
+    review: [choice('agy', 'gemini-3.8-flash-low'), choice('agy', 'claude-sonnet-5-5-low', 'low'), choice('codex', 'gpt-6-astra', 'low'), choice('claude', 'sonnet')],
+    research: [choice('agy', 'gemini-3.8-flash-low', 'low', true), choice('agy', 'claude-sonnet-5-5-low', 'low', true), choice('claude', 'sonnet', 'medium', true), choice('codex', 'gpt-6-astra', 'low', true)]
   },
-  usage: { ceiling: 90, balancePoints: 25, suppliedMaxAgeMinutes: 30, cacheSeconds: 30, sourceMaxAgeMinutes: 30 }
+  usage: { ceiling: 90, balancePoints: 25, suppliedMaxAgeMinutes: 30, cacheSeconds: 30, sourceMaxAgeMinutes: 30, externalCommand: null, externalTimeoutMs: 15000 }
 };
 function merge(a, b) {
   const out = { ...a };
@@ -38,6 +38,10 @@ export async function loadConfig(root) {
   const c = merge(defaults, await readJson(path.join(root, 'roster.config.json'), {}));
   if (!['safe', 'full'].includes(c.access)) throw new Error('access must be safe or full.');
   for (const [key, value] of Object.entries(c.usage)) {
+    if (key === 'externalCommand') {
+      if (value !== null && (!Array.isArray(value) || !value.length || value.some(v => typeof v !== 'string' || !v))) throw new Error('usage.externalCommand must be null or an executable/argument array.');
+      continue;
+    }
     if (!Number.isFinite(value) || value < 0) throw new Error(`Invalid usage.${key}`);
   }
   if (c.usage.ceiling > 100) throw new Error('usage.ceiling cannot exceed 100.');

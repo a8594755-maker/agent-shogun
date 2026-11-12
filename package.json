@@ -5,6 +5,6 @@
   "type": "module",
   "private": true,
   "bin": { "roster": "bin/roster.mjs" },
-  "scripts": { "test": "node --test", "check": "node --check bin/roster.mjs" },
+  "scripts": { "test": "node --test", "check": "node --check bin/roster.mjs", "sync-skill": "node scripts/sync-skill.mjs" },
   "engines": { "node": ">=18" }
 }

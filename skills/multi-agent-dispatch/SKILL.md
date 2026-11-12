@@ -5,6 +5,9 @@ description: Use roster to dispatch coding work to multiple provider CLIs, balan
 
 # Dispatch with roster
 
+Install the local CLI with `npm link` so `roster` is on PATH, or substitute
+`node <path>/bin/roster.mjs` for every `roster` command below.
+
 Use one planner to own integration and acceptance. Workers own implementation,
 tests, and commits within their assigned branches. Probe a CLI with `--help`,
 `roster providers`, or a minimal local experiment before claiming it cannot do
@@ -18,7 +21,8 @@ something. Respect the user's permissions and resource budget.
 2. Run `roster usage --refresh` and `roster providers`. Select each worker using
    `roster pick --kind <ui|server|review|mechanical|research> --json`.
    Inspect stale or unknown allowance and learned limits instead of assuming
-   unknown means unused. Use `usage set` when a visible dashboard supplies a
+   unknown means unused. Inspect the matching model group: Antigravity's Gemini
+   and Claude/GPT allowances are separate. Use `usage set` when a dashboard supplies a
    reading; include its window and reset time, never guess a percentage.
 3. Assign one session to one branch/worktree. Keep all control commands in the
    controlling repository. Use `--web` for research when authorized. Default to
@@ -63,7 +67,8 @@ Once the integrated candidate and tests are ready, freeze the candidate commit.
 Run one gate review with two different provider families concurrently, in
 separate review worktrees. Use `roster pick --kind review --not-family <author>`
 and current usage to choose eligible reviewers. For cross-review, each reviewer
-must differ from the author's family; do not relabel the same family as different.
+   must differ from the author's family; Claude through Antigravity is still
+   Claude, and GPT through Antigravity is still the Codex/OpenAI family.
 
 `roster review <author-session> --by <provider>` reviews that session's branch,
 not an arbitrary integrated tree. To review an integrated candidate, launch two

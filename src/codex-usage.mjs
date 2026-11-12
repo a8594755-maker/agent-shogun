@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { readRateLimits } from './codex-rpc.mjs';
+import { groupsOf, windowReading, minutesLabel, isoSeconds } from './allowance.mjs';
 
 // Reverse chunks keep memory bounded even for multi-gigabyte session logs.
 export async function* reverseLines(file, chunkSize = 64 * 1024, maxLine = 4 * 1024 * 1024) {
@@ -58,4 +60,23 @@ export async function readCodexUsage({ sessionsDir = path.join(os.homedir(), '.c
     } catch (e) { if (!['ENOENT', 'EACCES'].includes(e.code)) throw e; }
   }
   return { unknown: true, reason: 'No rate_limits reading found in Codex session logs.', source: 'Codex session logs', readAt: new Date().toISOString() };
+}
+// The adapter has one reader; the local log remains the preferred source.
+export async function readCodexAllowance({ binary, now = Date.now(), maxAgeMinutes = 30, timeoutMs, ...options } = {}) {
+  const local = await readCodexUsage(options);
+  const grouped = { ...local, groups: groupsOf(local, 'codex') }; delete grouped.windows;
+  if (!local.unknown && now - Date.parse(local.observedAt || local.readAt) <= maxAgeMinutes * 60000) return grouped;
+  if (!binary) return { ...grouped, fallbackReason: 'Codex app-server binary unavailable.' };
+  try {
+    const result = await readRateLimits(binary, { timeoutMs });
+    const limits = result.rateLimitsByLimitId?.codex || result.rateLimits;
+    if (!limits) throw new Error('Missing rate limits');
+    const windows = [limits.primary, limits.secondary].flatMap(w => {
+      if (!w || !Number.isFinite(w.windowDurationMins)) return [];
+      const value = windowReading(minutesLabel(w.windowDurationMins), w.windowDurationMins, w.usedPercent, isoSeconds(w.resetsAt));
+      return value ? [value] : [];
+    });
+    if (!windows.length) throw new Error('No valid windows');
+    return { groups: [{ id: 'default', name: 'All models', windows }], plan: limits.planType || null, credits: limits.credits ? { balance: limits.credits.balance, hasCredits: limits.credits.hasCredits, unlimited: limits.credits.unlimited } : undefined, source: 'Codex app-server account/rateLimits/read', readAt: new Date(now).toISOString(), observedAt: new Date(now).toISOString() };
+  } catch { return { ...grouped, fallbackReason: 'Codex app-server usage unavailable; retained the local reading.' }; }
 }

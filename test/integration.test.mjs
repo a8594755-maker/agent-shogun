@@ -29,8 +29,11 @@ for (const provider of ['codex', 'agy', 'claude']) {
     await s.run('start', 'limited', '--provider', provider, '--brief', await s.brief('LIMIT ZERO_EXIT'));
     const r = await s.fail('wait', 'limited', '--timeout', '8s'); assert.equal(r.ok, false);
     const readings = await s.run('usage', '--refresh'), providerReading = readings.find(r => r.provider === provider);
-    assert.equal(providerReading.limited, true); assert.match(providerReading.lastMessage, /limit|quota/i);
-    assert.equal((await s.run('pick', '--kind', 'server')).candidates.some(c => c.provider === provider), false);
+    const group = providerReading.groups.find(g => g.id === (provider === 'agy' ? 'gemini' : 'default'));
+    assert.equal(group.limited, true); assert.match(group.lastMessage, /limit|quota/i);
+    const candidates = (await s.run('pick', '--kind', 'server')).candidates;
+    assert.equal(candidates.some(c => c.provider === provider && c.group === group.id), false);
+    if (provider === 'agy') assert(candidates.some(c => c.provider === 'agy' && c.group === 'third-party'));
   });
 }
 test('providers probes only configured fakes and lists models when supported', async t => {
@@ -82,7 +85,7 @@ test('interrupted supervisor is recognized after launcher process exits', async 
 test('manual readings support repeated windows, age and stale display', async t => {
   const s = await scratch(t);
   await s.run('usage', 'set', 'claude', '--window', 'weekly', '--used', '85', '--resets', '2099-11-14T14:00:00Z', '--window', 'weekly:model-x', '--used', '95', '--resets', '2099-11-14T14:00:00Z', '--plan', 'test');
-  let r = (await s.run('usage')).find(r => r.provider === 'claude'); assert.equal(r.windows.length, 2); assert.equal(r.stale, false); assert.equal(r.source, 'supplied');
+  let r = (await s.run('usage')).find(r => r.provider === 'claude'); assert.equal(r.groups[0].windows.length, 2); assert.equal(r.stale, false); assert.equal(r.source, 'supplied');
   const now = Date.now() + 31 * 60000;
   r = (await usage(s.root, s.config, { now, sourceOptions: { codex: { sessionsDir: path.join(s.parent, 'empty') } } })).find(r => r.provider === 'claude');
   assert.equal(r.stale, true); assert(r.ageSeconds >= 1800);
@@ -146,7 +149,7 @@ test('stale individual supplied windows remain stale when a different window is 
   await writeJson(file, { source: 'supplied', readAt: '2000-01-01T00:00:00Z', windows: [{ label: 'weekly', usedPercent: 85, resetsAt: '2099-01-01T00:00:00Z', readAt: '2000-01-01T00:00:00Z' }] });
   await s.run('usage', 'set', 'claude', '--window', 'weekly:model-x', '--used', '20', '--resets', '2099-01-01T00:00:00Z');
   const r = (await s.run('usage')).find(r => r.provider === 'claude');
-  assert.equal(r.windows.find(w => w.label === 'weekly').stale, true); assert.equal(r.windows.find(w => w.label === 'weekly:model-x').stale, false);
+  assert.equal(r.groups[0].windows.find(w => w.label === 'weekly').stale, true); assert.equal(r.groups[0].windows.find(w => w.label === 'weekly:model-x').stale, false);
 });
 test('later successful turn clears a learned limit and gauges include local turns', async t => {
   const s = await scratch(t);
