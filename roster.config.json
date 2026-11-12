@@ -1,0 +1,122 @@
+{
+  "providers": {
+    "codex": {
+      "model": "gpt-6-astra",
+      "effort": "low"
+    },
+    "agy": {
+      "model": "gemini-3.8-flash-low",
+      "effort": "low"
+    },
+    "claude": {
+      "model": "sonnet",
+      "effort": "medium"
+    }
+  },
+  "access": "safe",
+  "guards": {
+    "blockPush": true,
+    "env": {
+      "CLOUDFLARE_API_TOKEN": "roster-deploy-disabled"
+    },
+    "antigravityDeny": true
+  },
+  "briefHeader": "Work only in your assigned directory. Commit only on your assigned branch. Never push, deploy, or publish. Run the type check and tests yourself and loop until green. Never weaken an existing test.",
+  "kinds": {
+    "ui": [
+      {
+        "provider": "claude",
+        "model": "sonnet",
+        "effort": "medium"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "medium"
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "low"
+      }
+    ],
+    "server": [
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "low"
+      },
+      {
+        "provider": "claude",
+        "model": "sonnet",
+        "effort": "medium"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "medium"
+      }
+    ],
+    "mechanical": [
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "low"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "medium"
+      },
+      {
+        "provider": "claude",
+        "model": "sonnet",
+        "effort": "medium"
+      }
+    ],
+    "review": [
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "medium"
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "low"
+      },
+      {
+        "provider": "claude",
+        "model": "sonnet",
+        "effort": "medium"
+      }
+    ],
+    "research": [
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "low",
+        "web": true
+      },
+      {
+        "provider": "claude",
+        "model": "sonnet",
+        "effort": "medium",
+        "web": true
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "web": true
+      }
+    ]
+  },
+  "usage": {
+    "ceiling": 90,
+    "balancePoints": 25,
+    "suppliedMaxAgeMinutes": 30,
+    "cacheSeconds": 30,
+    "sourceMaxAgeMinutes": 30
+  }
+}
