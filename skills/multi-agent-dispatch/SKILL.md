@@ -66,6 +66,7 @@ Initial `?` tiers, best-for suggestions and allocation are provisional. Context 
 
 ## Run with or without roster
 
+For direct launch/resume templates, guarded modes and quota reading without the program, use [references/direct-cli-guide.md](references/direct-cli-guide.md); it travels with this folder.
 With the program: `npm link` puts `roster` on PATH, or replace every invocation with `node <path>/bin/roster.mjs`. Run `roster catalog status`, `roster providers`, `roster usage --refresh`, then `roster pick --kind <kind> --json`. Unknown allowance is not unused allowance; check sign-in before dispatch.
 With ONLY this folder: use the catalog's CLI, sign-in, model and allowance instructions directly. Probe `<cli> --help` before claiming a capability is unavailable. Start/resume using that CLI's documented flags; save conversation IDs and answers yourself. Use a native argument array for Antigravity `/usage`, without `--disable-slash-commands`; never send `grok -p /usage`. No roster installation is required to read, research or update this catalog.
 Kinds are open strings: hardest, ui, server, tests (mechanical is an alias), review, security, research, bulk. User preferences override catalog allocation. Respect user authorization and budgets; do not silently expand access or paid work.

@@ -260,6 +260,8 @@ history in `references/catalog-history/`, table/date generation, and full-folder
 sync. Inputs are validated and rendered before any mutation; each replacement is
 atomic, but a machine crash between replacements is not a multi-file transaction.
 The skill is kept under 160 lines; research detail stays in the reference brief.
+`references/direct-cli-guide.md` supplies launch/resume templates and allowance
+reading instructions when this folder is installed without the program.
 
 `pick` uses explicit user `kinds`, then catalog `allocation`, then built-in
 defaults, and warns on a stale/missing catalog. `init` leaves `kinds` absent so
