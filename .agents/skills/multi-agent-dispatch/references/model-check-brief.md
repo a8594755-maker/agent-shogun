@@ -66,6 +66,11 @@ GPT models`. Unknown release is null; context size 0 means not confirmed; cost 1
 is only a neutral placeholder until verified. Evidence should include URLs,
 observation dates, and the precise claims supported. Never insert personal data.
 
+Each provider may also have `excludedModels: [{"id":"exact-id","reason":"why excluded"}]`
+for listed retirement candidates or routing helpers that should not be dispatched.
+These records suppress false inventory-drift warnings; they are not active models
+and must not appear in allocation choices. Keep reasons dated and sourced.
+
 The planner must open pages behind any claim that changes allocation and verify
 every proposed model ID. Hand the web research to an eligible provider with the
 most remaining allowance, then independently check the result. If there is no web

@@ -69,7 +69,7 @@ Use one planner to own acceptance and integration. Split independent work by fil
 Project rules come from the project's own configuration or instructions and always win over the catalog. Never copy a project's rule into this skill.
 Each brief states the goal, owned files, directory/branch, acceptance checks and forbidden mechanisms (for example no dependencies, schema changes, network, deployment, publication or test weakening). Environment guards are accident guards, not full enforcement.
 Workers run the type check and relevant tests, fix failures until green, commit only on their branch, and report the commit plus exact checks. Never push, deploy or publish without the user's corresponding authorization.
-With roster: `roster start worker-a --provider codex --brief brief.txt --worktree ../worker-a --branch worker/a --base main`; inspect `status`, `wait`, `answer`, HEAD and diff. Resume via `roster send worker-a --message <file or text>`, after the prior turn ends.
+With roster: `roster start worker-a --provider codex --brief brief.txt --worktree ../worker-a --branch worker/a --base HEAD`; inspect `status`, `wait`, `answer`, HEAD and diff. Resume via `roster send worker-a --message <file or text>`, after the prior turn ends.
 Without roster, use separate worktrees and the provider CLI directly, with the same ownership and acceptance rules. Preserve IDs for resume. Verify actual results: background launch or a successful provider turn does not prove task completion, a commit, or passing tests.
 Read every answer and diff before merging accepted commits. Do not run review rounds per branch. When an answer comes back complicated, simplify the requirement and remove unnecessary mechanisms before adding instructions or workers.
 

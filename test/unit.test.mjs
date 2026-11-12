@@ -15,7 +15,7 @@ import { findBinary } from '../src/binaries.mjs';
 import { safeName } from '../src/io.mjs';
 
 const installed = ['codex', 'agy', 'claude'].map(provider => ({ provider, installed: true, authState: 'signed in' }));
-const readings = (codex, agy, claude) => [codex, agy, claude].map((percent, i) => ({ provider: installed[i].provider, windows: percent === null ? [] : [{ usedPercent: percent, label: 'weekly' }] }));
+const readings = (codex, agy, claude) => [codex, agy, claude].map((percent, i) => ({ provider: installed[i].provider, windows: percent === null ? [] : [{ usedPercent: percent, label: 'weekly',resetsAt:'2099-01-01T00:00:00Z' }] }));
 const preferences = { ...defaults, kinds: {
   ui: [{provider:'claude', model:'sonnet', effort:'medium'}, {provider:'agy',model:'gemini-example',effort:'low'}, {provider:'codex',model:'gpt-6-astra',effort:'low'}],
   server: [{provider:'codex',model:'gpt-6-astra',effort:'low'}, {provider:'claude',model:'sonnet',effort:'medium'}, {provider:'agy',model:'gemini-example',effort:'low'}],
@@ -35,7 +35,7 @@ test('pick excludes missing, limited and ceiling providers', () => {
   assert.equal(p.selected, null); assert.equal(p.rejected.length, 4);
 });
 test('pick evaluates tightest window', () => {
-  const r = readings(2, 20, 10); r[0].windows.push({ usedPercent: 95 });
+  const r = readings(2, 20, 10); r[0].windows.push({ usedPercent: 95,label:'5-hour',resetsAt:'2099-01-01T00:00:00Z' });
   assert.equal(pick(preferences, 'server', installed, r).selected.provider, 'claude');
 });
 test('unknown usage remains explicit without inventing a percent', () => {
@@ -43,7 +43,7 @@ test('unknown usage remains explicit without inventing a percent', () => {
   assert.equal(p.selected.provider, 'agy'); assert.equal(p.selected.tightest, null); assert.match(p.reason, /unknown/);
 });
 test('expired windows do not permanently exclude provider', () => {
-  const r = readings(99, 10, 10); r[0].windows[0].expired = true;
+  const r = readings(99, 10, 10); r[0].windows[0].resetsAt = '2001-01-01T00:00:00Z';
   assert.equal(pick(preferences, 'server', installed, r).selected.provider, 'codex');
 });
 test('research choice includes web request', () => assert.equal(pick(preferences, 'research', installed, readings(0, 0, 0)).selected.web, true));

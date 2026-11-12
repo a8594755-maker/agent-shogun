@@ -2,7 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { providerNames } from './config.mjs';
-import { defaultSkillRoot, defaultSkillCopy, atomicText, syncSkill } from './skill-sync.mjs';
+import { defaultSkillRoot, defaultSkillCopy } from './skill-sync.mjs';
+import {preflightTree,separateTrees,replaceTrees} from './tree-transaction.mjs';
+import {withFileLock} from './file-lock.mjs';
 
 const day = 86400000;
 const dateValid = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s;
@@ -10,7 +12,7 @@ const string = value => typeof value === 'string' && value.trim().length > 0;
 const strings = value => Array.isArray(value) && value.every(string);
 export function validateCatalog(c) {
   const fail = message => { throw new Error(`Invalid catalog: ${message}`); };
-  if (!c || !dateValid(c.verifiedAt) || !string(c.verifiedBy)) fail('verifiedAt must be YYYY-MM-DD and verifiedBy must be nonempty.');
+  if (!c || !dateValid(c.verifiedAt) || !string(c.verifiedBy) || /[\r\n]/.test(c.verifiedBy)) fail('verifiedAt must be YYYY-MM-DD and verifiedBy must be a nonempty single line.');
   if (!c.providers || typeof c.providers !== 'object' || Array.isArray(c.providers)) fail('providers must be an object.');
   for (const name of providerNames) {
     const p = c.providers[name];
@@ -42,7 +44,8 @@ export function catalogPaths(root, config) {
   const file = configured ? /\.json$/i.test(configured) ? path.resolve(root, configured) : path.resolve(root, configured, 'references', 'model-catalog.json') : path.join(defaultSkillRoot, 'references', 'model-catalog.json');
   const skillRoot = path.dirname(path.dirname(file));
   if (path.basename(path.dirname(file)) !== 'references' || path.basename(file) !== 'model-catalog.json') throw new Error('catalog.path must be a skill folder or its references/model-catalog.json file.');
-  const copyRoot = !configured ? defaultSkillCopy : path.basename(path.dirname(skillRoot)) === 'skills' ? path.resolve(skillRoot, '..', '..', '.agents', 'skills', path.basename(skillRoot)) : path.join(path.dirname(skillRoot), '.agents', 'skills', path.basename(skillRoot));
+  const inAgents=path.basename(path.dirname(path.dirname(skillRoot)))==='.agents';
+  const copyRoot = !configured ? defaultSkillCopy : inAgents?path.resolve(skillRoot,'..','..','..','skills',path.basename(skillRoot)):path.basename(path.dirname(skillRoot)) === 'skills' ? path.resolve(skillRoot, '..', '..', '.agents', 'skills', path.basename(skillRoot)) : path.join(path.dirname(skillRoot), '.agents', 'skills', path.basename(skillRoot));
   return { file, skillRoot, skillFile: path.join(skillRoot, 'SKILL.md'), copyRoot, history: path.join(skillRoot, 'references', 'catalog-history') };
 }
 export function catalogStatus(catalog, maxAgeDays = 15, now = Date.now(), reason) {
@@ -107,22 +110,27 @@ export function modelDrift(catalog, providers) {
 export async function setCatalog(root, config, sourceFile) {
   // Validate every input and render before any mutation, including lock/history creation.
   const incoming = validateCatalog(JSON.parse(await fs.readFile(sourceFile, 'utf8')));
-  const paths = catalogPaths(root, config), before = await fs.readFile(paths.skillFile, 'utf8');
-  const rendered = renderCatalogSkill(before, incoming);
-  const previous = await fs.readFile(paths.file, 'utf8').catch(e => { if (e.code === 'ENOENT') return null; throw e; });
+  const paths = catalogPaths(root, config);
+  separateTrees(paths.skillRoot,paths.copyRoot);
+  // Validate both trees and all content before locking/staging, then repeat under lock.
+  await preflightTree(paths.copyRoot);
+  const initial=await preflightTree(paths.skillRoot);
+  renderCatalogSkill(initial.files.get('SKILL.md')?.toString()||'',incoming);
   const lockFile = path.join(path.dirname(paths.skillRoot), `.${path.basename(paths.skillRoot)}.catalog-update.lock`);
-  const lock = await fs.open(lockFile, 'wx').catch(e => { if (e.code === 'EEXIST') throw new Error('Another catalog update is in progress.'); throw e; });
-  try {
+  return withFileLock(lockFile,async()=>{
+    const source=await preflightTree(paths.skillRoot),copy=await preflightTree(paths.copyRoot);
+    const rendered=renderCatalogSkill(source.files.get('SKILL.md')?.toString()||'',incoming),previous=source.files.get(path.join('references','model-catalog.json'))?.toString();
+    const wanted=new Map(source.files);
     const stamp = new Date().toISOString().replace(/[:.]/g, '-') + '-' + randomUUID().slice(0, 8);
     if (previous) {
       let date = 'unverified';
       try { const value = JSON.parse(previous).verifiedAt; if (dateValid(value)) date = value; } catch { /* preserve malformed previous data without trusting a filename */ }
-      await atomicText(path.join(paths.history, `${date}-${stamp}-previous.json`), previous);
+      wanted.set(path.join('references','catalog-history',`${date}-${stamp}-previous.json`),Buffer.from(previous));
     }
     const json = JSON.stringify(incoming, null, 2) + '\n';
-    await atomicText(path.join(paths.history, `${incoming.verifiedAt}-${stamp}-installed.json`), json);
-    await atomicText(paths.file, json); await atomicText(paths.skillFile, rendered);
-    const synced = await syncSkill(paths.skillRoot, paths.copyRoot);
-    return { verifiedAt: incoming.verifiedAt, catalog: paths.file, history: paths.history, copiedFiles: synced.files };
-  } finally { await lock.close(); await fs.unlink(lockFile); }
+    wanted.set(path.join('references','catalog-history',`${incoming.verifiedAt}-${stamp}-installed.json`),Buffer.from(json));
+    wanted.set(path.join('references','model-catalog.json'),Buffer.from(json));wanted.set('SKILL.md',Buffer.from(rendered));
+    await replaceTrees([{...source,files:wanted},{...copy,files:wanted}]);
+    return { verifiedAt: incoming.verifiedAt, catalog: paths.file, history: paths.history, copiedFiles: wanted.size };
+  });
 }

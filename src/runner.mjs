@@ -45,7 +45,7 @@ async function run() {
       child.stdout.on('data', data => { fs.writeSync(outFd, data); stdoutTail = (stdoutTail + data.toString()).slice(-16384); });
       child.stderr.on('data', data => { fs.writeSync(errFd, data); stderrTail = (stderrTail + data.toString()).slice(-16384); });
       child.stdin.on('error', () => {});
-      child.stdin.end(invocation.stdin ? prompt : undefined);
+      child.stdin.end(invocation.stdin ? invocation.input ?? prompt : undefined);
       const ownership = await ownChild(child,nonce);
       await writeJson(path.join(dir,'child.json'),ownership);
       await audit({event:'provider_started',pid:ownership.pid,startTime:ownership.startTime});

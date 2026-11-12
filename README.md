@@ -19,6 +19,10 @@ PowerShell, cmd, and Git Bash are supported. On Unix the entry point is executab
 `npm link` installs a local command; it does not publish a package. This package is
 marked private to prevent accidental npm publication.
 
+If Windows PowerShell blocks the generated `npm.ps1` or `roster.ps1` shim,
+use `npm.cmd link` and `roster.cmd`, or the direct `node` invocation above.
+No execution-policy change is needed.
+
 Run roster commands from a Git repository, including from its subdirectories.
 State and configuration belong to that repository, even when a worker runs in a
 different directory or linked worktree. Keep using the same controlling repository
@@ -38,7 +42,7 @@ checks, and the mechanisms it must never use. Commit a baseline first if this is
 a new repository. Substitute an installed provider and an available model below:
 
 ```text
-roster start api --provider codex --brief brief.txt --worktree ../api-worker --branch worker/api --base main
+roster start api --provider codex --brief brief.txt --worktree ../api-worker --branch worker/api --base HEAD
 roster status api
 roster wait api --timeout 30m
 roster answer api
@@ -74,13 +78,13 @@ never a shell assembled from user text. `--flag=value` is supported.
 | `usage set <provider> --window <label> --used <0–100> --resets <ISO> [--plan <text>] [--group <id>]` | Record a dashboard/planner reading. Repeat complete window groups. Other saved windows are retained. Antigravity groups: `gemini` (default) or `third-party`; other providers use `default`. |
 | `pick --kind <kind> [--not-family <provider>]` | Recommend a signed-in provider, model and effort using user preferences, the catalog and allowance. Kinds are open strings; mechanical aliases tests. Exit 1 if none qualify. |
 | `start <name> --provider <p> --brief <file>` | Start in the background, returning a name and `running` state. Optional `--model`, `--effort`, `--dir`, `--access safe\|full`, and `--web`. |
-| `start … --worktree <path> --branch <branch> [--base <ref>]` | Create a linked worktree and branch if absent; otherwise verify the existing worktree's branch. Base defaults to HEAD. Cannot combine with `--dir`. |
+| `start … --worktree <path> --branch <branch> [--base <ref>]` | Create a linked worktree and branch if absent; otherwise verify its branch. A supplied base must resolve to a commit and match an existing branch exactly; omit it to attach intentionally. New branches default to HEAD. Cannot combine with `--dir`. |
 | `send <name> --message <file or text>` | Start a follow-up in the same conversation. An existing path is read as UTF-8; otherwise the argument is literal text. Refuse overlapping turns or a changed branch. |
 | `status [name]` | Current state, error, provider/model/effort/access, turn, elapsed seconds, provider conversation ID, token counts, current HEAD, uncommitted file count, directory, and answer path. |
 | `wait <name>... [--timeout 30m]` | Wait for named current turns. Exit 0 only when all are done; a failed turn or timeout exits 1. Timeout leaves workers running. Units: ms, s, m, h. |
 | `answer <name> [--turn <n>]` | Read the latest or specified saved answer. |
 | `stop <name>` | Ask the owning supervisor to terminate its live provider process tree. Follow with `wait` to observe `failed: stopped`. Never kills by image name or a PID taken from disk. |
-| `review <name> --by <provider> [--brief <file>]` | Cross-family review of the clean, completed author branch at its current commit. The built-in brief requires severity, file:line, and a reproduction test for every finding; forbids edits to author files and commits. |
+| `review <name> --by <provider> [--model <m>] [--effort <e>] [--access safe\|full] [--brief <file>]` | Cross-family review of the clean, completed author branch. Defaults to the configured access and that provider's project/catalog review model, never inherits author access. Preflight sign-in, binary and model before creating a worktree. The brief requires severity, file:line and a reproduction test; forbids author edits and commits. |
 
 Example supplied readings:
 
@@ -162,6 +166,7 @@ whose names suggest secret storage. It extracts the most recent `rate_limits`
 event in the first file containing one. Window duration determines the label,
 so primary/secondary can swap. Credits and plan are preserved. `readAt` is the
 scan time, `observedAt` the event timestamp (file mtime when absent).
+`CODEX_HOME` overrides `~/.codex`; unrelated log lines are skipped before parsing.
 
 If the file reading is missing or older than `usage.sourceMaxAgeMinutes`, the
 same Codex adapter starts a temporary `codex app-server --stdio`, initializes
@@ -176,6 +181,10 @@ with no model turn. It converts **remaining** fractions into percentages used:
 `usedPercent = (1 - remaining_fraction) * 100`. The binary is spawned directly
 with an argument array, avoiding Git Bash/MSYS conversion of `/usage` into a path.
 This call never passes `--disable-slash-commands`; ordinary worker turns still do.
+Worker briefs use the documented NDJSON stdin transport (`--input-format stream-json`
+and `--output-format stream-json`), avoiding Windows command-line length limits.
+The raw stream is saved; the terminal `result` event supplies the envelope.
+See [Antigravity headless mode](https://antigravity.google/docs/cli/headless/).
 
 Allowance JSON is `provider -> groups[] -> windows[]`:
 
@@ -206,6 +215,13 @@ their own timestamps and become stale after 30 minutes by default. Expired windo
 stay visible but are excluded from comparisons; no zero-percent reset is invented.
 Stale non-expired readings remain conservative inputs. Unknown stays explicit.
 
+Every source, supplied reading and cache must validate completely: nonempty string
+labels unique within each group, finite percentages from 0 to 100, positive window
+durations when present, and reset instants in 2000–2099. Unix reset values must be
+seconds, not milliseconds. A malformed reading makes that provider unknown with
+a reason; valid buckets cannot conceal an invalid one. Corrupt session files are
+reported individually by status and skipped by local token/cost gauges.
+
 Failed Antigravity turns with exit 3 and `AGY_ERROR` JSON are parsed for 429 /
 `RESOURCE_EXHAUSTED`, short message, and optional `Resets in 1h1m35s` text. Missing
 reset text remains unknown. Learned limits affect only the turn's model group.
@@ -222,9 +238,11 @@ most known allowance left. No per-kind provider order is hard-coded. It drops mi
 providers, group limits, any applicable non-expired window **at or above 90%**, and
 the excluded provider/underlying family. Claude through Antigravity is in the
 Claude family; GPT through Antigravity is in the Codex/OpenAI family. The first eligible choice wins unless its tightest percentage
-is more than 25 points above the least-full known candidate. Unknown values
-never masquerade as 0%. JSON includes candidates, per-window numbers and rejected
-providers. The current model is a preference, not a promise of model availability.
+is more than 25 points above the least-full known candidate. An unknown catalog
+leader yields to a known candidate with room; a project rule retains its unknown
+leader and the explanation says so. Unknown values never masquerade as 0%.
+Models missing from a successful live model list are excluded. JSON includes
+candidates, per-window numbers and rejection reasons.
 
 Every adapter also implements `authState()` without inference. Codex uses
 `login status`, Claude uses `auth status --json`, Antigravity uses its successful
@@ -265,8 +283,10 @@ before continuing. Rejected model IDs and newly listed IDs make the catalog stal
 The skill alone contains everything needed for direct CLI dispatch and manual
 catalog/table/date updates. With roster, `catalog set` handles validation, dated
 history in `references/catalog-history/`, table/date generation, and full-folder
-sync. Inputs are validated and rendered before any mutation; each replacement is
-atomic, but a machine crash between replacements is not a multi-file transaction.
+sync. Both trees are validated and staged before directory swaps; ordinary errors
+roll both back, including history. A crash between swaps is not a filesystem-wide
+transaction. If rollback itself fails, the error identifies retained backups for
+recovery; do not discard those directories without inspecting them.
 The skill is kept under 160 lines; research detail stays in the reference brief.
 `references/direct-cli-guide.md` supplies launch/resume templates and allowance
 reading instructions when this folder is installed without the program.
@@ -419,14 +439,19 @@ installation and unavailable model listing are separate states.
 ```
 
 The last two files are created only when needed. JSON providers store their
-single raw envelope in `events.jsonl`; Codex stores the event stream. Keep `.roster`
+raw envelope in `events.jsonl`; Codex and Antigravity store event streams. Keep `.roster`
 private: prompts, outputs and errors can contain sensitive work. Config is meant
 to be shareable; session state is ignored. No inherited environment dump is saved.
 
 A detached Node supervisor owns each child and emits heartbeat/result files.
 Provider processes are detached on Windows too, isolating their consoles from the
 supervisor. Atomic JSON replacement prevents partial reads. Per-session locks
-reject concurrent mutations. State defaults to `<repo>/.roster`; `ROSTER_STATE_DIR`
+reject concurrent mutations. Complete ownership records (PID, creation time,
+nonce) are published with exclusive hard links; recovery claims are immutable
+per generation so an old recovery cannot remove a newer lock. This requires a
+filesystem with hard-link support; unsupported filesystems fail closed. Old
+directory locks and abandoned private temporary files do not block new locks.
+State defaults to `<repo>/.roster`; `ROSTER_STATE_DIR`
 overrides the entire state directory. No heartbeat-age threshold kills a worker.
 When a heartbeat is stale, status verifies the supervisor PID and creation time
 before declaring it interrupted. Dead ownership/reboots can yield `failed:

@@ -24,12 +24,12 @@ Usage: roster [--config <path>] <command> [options] [--json]
   wait <name>... [--timeout 30m]
   answer <name> [--turn <n>]
   stop <name>
-  review <name> --by <provider> [--brief <file>]`;
+  review <name> --by <provider> [--model <m>] [--effort <e>] [--access safe|full] [--brief <file>]`;
 const definitions = {
   init: {}, providers: {}, catalog: {}, usage: { refresh: false, window: true, used: true, resets: true, plan: true, group: true },
   pick: { kind: true, 'not-family': true },
   start: { provider: true, model: true, effort: true, brief: true, dir: true, worktree: true, branch: true, base: true, access: true, web: false },
-  send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true }
+  send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true,model:true,effort:true,access:true }
 };
 export function parseArgs(argv) {
   const args = [...argv]; let leadingJson = false, leadingConfig;
@@ -44,7 +44,7 @@ export function parseArgs(argv) {
   }
   const [command, ...rest] = args;
   if (!command || ['--help', '-h', 'help'].includes(command)) return { command: 'help', json: argv.includes('--json'), positional: [], options: {}, sequence: [] };
-  if (!definitions[command]) throw new Error(`Unknown command: ${command}`);
+  if (!Object.hasOwn(definitions,command)) throw new Error(`Unknown command: ${command}`);
   const options = leadingConfig === undefined ? {} : { config: leadingConfig }, positional = [], sequence = []; let json = leadingJson;
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i];
@@ -75,7 +75,7 @@ function requireOption(options, key) { if (!options[key]) throw new Error(`Missi
 function arity(args, min, max = min) { if (args.length < min || args.length > max) throw new Error('Wrong number of arguments. See roster --help.'); }
 async function messageText(value) {
   try { return await fs.readFile(path.resolve(value), 'utf8'); }
-  catch (e) { if (e.code === 'ENOENT' || e.code === 'ENAMETOOLONG') return value; throw e; }
+  catch (e) { if (['ENOENT','ENAMETOOLONG','EISDIR','EINVAL'].includes(e.code)) return value; throw e; }
 }
 function windowsFrom(sequence) {
   const windows = []; let current;
@@ -146,7 +146,7 @@ export async function main(argv = process.argv.slice(2)) {
       case 'wait': arity(p, 1, Infinity); value = await sessions.wait(root, p, duration(o.timeout)); if (!value.ok) process.exitCode = 1; break;
       case 'answer': arity(p, 1); value = await sessions.answer(root, p[0], o.turn); break;
       case 'stop': arity(p, 1); value = await sessions.stop(root, p[0]); break;
-      case 'review': arity(p, 1); value = await sessions.review(root, config, p[0], checkProvider(requireOption(o, 'by')), o.brief ? await fs.readFile(path.resolve(o.brief), 'utf8') : ''); break;
+      case 'review': arity(p, 1); value = await sessions.review(root, config, p[0], checkProvider(requireOption(o, 'by')), o.brief ? await fs.readFile(path.resolve(o.brief), 'utf8') : '',o); break;
     }
     console.log(json ? JSON.stringify(value) : human(outputCommand, value));
   } catch (e) { console.error(json ? JSON.stringify({ error: e.message }) : `roster: ${e.message}`); process.exitCode = 1; }

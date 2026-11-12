@@ -39,7 +39,10 @@ export async function terminateOwned(child) {
   if (!record || child.exitCode !== null || child.signalCode !== null) return {signalled:false, reason:'child already exited or not owned'};
   if (!await sameProcess(record)) return {signalled:false, reason:'process identity unverified; refused to signal'};
   if (child.exitCode !== null || child.signalCode !== null) return {signalled:false, reason:'child already exited'};
-  if (process.platform === 'win32') await exec('taskkill.exe',['/PID',String(record.pid),'/T','/F'],{windowsHide:true});
+  if (process.platform === 'win32') {
+    try{await exec('taskkill.exe',['/PID',String(record.pid),'/T','/F'],{windowsHide:true});}
+    catch(e){if(child.exitCode===null&&child.signalCode===null&&await sameProcess(record))throw e;return {signalled:false,reason:'child exited before termination'};}
+  }
   else { try { process.kill(-record.pid,'SIGKILL'); } catch(e) { if(e.code!=='ESRCH') throw e; } }
   return {signalled:true};
 }

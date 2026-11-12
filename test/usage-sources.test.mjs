@@ -123,7 +123,7 @@ test('manual per-model weekly limits survive newer status-line general readings'
 });
 test('group-aware pick can use Claude through Antigravity when Gemini is full', () => {
   const config = structuredClone(defaults); config.kinds = {}; config.kinds.review = [{ provider: 'agy', model: 'gemini-example', effort: 'low' }, { provider: 'agy', model: 'claude-opus-example', effort: 'low' }];
-  const reading = { provider: 'agy', groups: [{ id: 'gemini', windows: [{ usedPercent: 99 }] }, { id: 'third-party', windows: [{ usedPercent: 10 }] }] };
+  const reading = { provider: 'agy', groups: [{ id: 'gemini', windows: [{label:'weekly',usedPercent:99,resetsAt:'2099-01-01T00:00:00Z'}] }, { id: 'third-party', windows: [{label:'weekly',usedPercent:10,resetsAt:'2099-01-01T00:00:00Z'}] }] };
   const p = pick(config, 'review', [{ provider: 'agy', installed: true, authState: 'signed in' }], [reading]);
   assert.equal(p.selected.model, 'claude-opus-example'); assert.equal(p.selected.group, 'third-party');
   assert.equal(pick(config, 'review', [{ provider: 'agy', installed: true, authState: 'signed in' }], [reading], 'claude').selected, null);
@@ -134,7 +134,7 @@ test('model-family exclusion also excludes GPT models through Antigravity', () =
 });
 test('per-model supplied weekly limits apply only to the matching Claude model', () => {
   const config = structuredClone(defaults); config.kinds = {}; config.kinds.ui = [{ provider: 'claude', model: 'opus', effort: 'low' }, { provider: 'claude', model: 'sonnet', effort: 'low' }];
-  const p = pick(config, 'ui', [{ provider: 'claude', installed: true, authState: 'signed in' }], [{ provider: 'claude', groups: [{ id: 'default', windows: [{ label: 'weekly', usedPercent: 20 }, { label: 'weekly:opus', usedPercent: 95 }] }] }]);
+  const p = pick(config, 'ui', [{ provider: 'claude', installed: true, authState: 'signed in' }], [{ provider: 'claude', groups: [{ id: 'default', windows: [{ label: 'weekly', usedPercent: 20, resetsAt:'2099-01-01T00:00:00Z' }, { label: 'weekly:opus', usedPercent: 95, resetsAt:'2099-01-01T00:00:00Z' }] }] }]);
   assert.equal(p.selected.model, 'sonnet'); assert.equal(p.rejected[0].model, 'opus');
 });
 test('structured exit-three quota failure limits its group only and records reset', async t => {

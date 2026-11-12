@@ -13,7 +13,7 @@ import { scratch, project, cli } from './helpers.mjs';
 
 const choice = provider => ({ provider, model: defaults.providers[provider].model, effort: defaults.providers[provider].effort });
 const installed = ['codex','agy','claude','grok'].map(provider=>({provider,installed:true,authState:'signed in'}));
-const reading = (provider, used) => ({provider,groups:[{id:provider==='agy'?'gemini':'default',windows:[{label:'weekly',usedPercent:used}]}]});
+const reading = (provider, used) => ({provider,groups:[{id:provider==='agy'?'gemini':'default',windows:[{label:'weekly',usedPercent:used,resetsAt:'2099-01-01T00:00:00Z'}]}]});
 test('generic defaults and shipped example contain no per-kind project policy', async()=>{
   assert.equal(Object.hasOwn(defaults,'kinds'),false);
   assert.equal(Object.hasOwn(await readJson(path.join(project,'roster.config.json')),'kinds'),false);
@@ -36,7 +36,7 @@ test('project list replaces the catalog and a full/signed-out rule never escapes
 });
 test('allowance fallback can choose another model group through the same CLI',()=>{
   const info={catalog:{allocation:{},providers:{agy:{models:[{id:'claude-example',efforts:['low'],relativeAllowanceCost:1}]}}},status:{stale:false}};
-  const readings=[reading('codex',20),{provider:'agy',groups:[{id:'gemini',windows:[{label:'weekly',usedPercent:95}]},{id:'third-party',windows:[{label:'weekly',usedPercent:0}]}]}];
+  const readings=[reading('codex',20),{provider:'agy',groups:[{id:'gemini',windows:[{label:'weekly',usedPercent:95,resetsAt:'2099-01-01T00:00:00Z'}]},{id:'third-party',windows:[{label:'weekly',usedPercent:0,resetsAt:'2099-01-01T00:00:00Z'}]}]}];
   const result=pick(defaults,'new-kind',installed,readings,undefined,info); assert.equal(result.selected.provider,'agy'); assert.equal(result.selected.group,'third-party');
 });
 test('nearest config wins while walking from cwd to repo root and unknown keys are tolerated',async t=>{

@@ -4,7 +4,8 @@ This folder is sufficient for planning and dispatch. The CLIs themselves must be
 installed and signed in; use each provider's `cli` and `signIn` catalog fields.
 Probe `--help`, version, and a non-inference sign-in/model-list command before
 launching. Do not open provider credential or cookie files. Confirm every chosen
-model/effort against the catalog and current CLI; the initial allocation is provisional.
+model/effort against the dated catalog and current CLI; consult `notConfirmed`
+for the specific remaining uncertainties.
 
 Create separate Git branches/worktrees, write briefs with ownership and forbidden
 mechanisms, and retain the selected directory, process handle, session ID, raw
@@ -20,7 +21,7 @@ templates, not shell strings to interpolate untrusted prompts into.
 | CLI | New conversation | Resume |
 | --- | --- | --- |
 | Codex | `codex exec -m MODEL -c model_reasoning_effort="EFFORT" --approve-for-me --json -o ANSWER -` with brief on stdin | `codex --approve-for-me exec resume ID -m MODEL -c model_reasoning_effort="EFFORT" --json -o ANSWER -` with follow-up on stdin |
-| Antigravity | `agy -p BRIEF --model MODEL --effort EFFORT --output-format json --settings SETTINGS --mode accept-edits` | Same flags plus `--conversation ID` |
+| Antigravity | `agy --model MODEL --effort EFFORT --input-format stream-json --output-format stream-json --settings SETTINGS --mode accept-edits` with NDJSON stdin | Same flags plus `--conversation ID` |
 | Claude | `claude -p --model MODEL --effort EFFORT --output-format json --permission-mode acceptEdits` with brief on stdin | Same flags plus `--resume ID` |
 | Grok | `grok --prompt-file BRIEF_FILE -m MODEL --reasoning-effort EFFORT --output-format json --cwd DIRECTORY --permission-mode default --sandbox workspace -s UUID` | Same flags with `-r ID` instead of `-s UUID` |
 
@@ -29,6 +30,10 @@ Claude's `session_id`, and Grok's `sessionId` are the conversation identifiers.
 Choose Grok's UUID before launch. Treat nonzero exit, failed envelopes, truncated
 turns, and Grok stop reasons other than `end_turn` as failures. A final answer can
 be a refusal; verify the requested files, tests and commit separately.
+
+For Antigravity stream stdin, send one line
+`{"event":"user","message":{"content":"BRIEF"}}` and close stdin. Parse the
+terminal `result` event's `result` envelope; this avoids Windows argument limits.
 
 For Antigravity, supply a session-only settings JSON with `toolPermission` set to
 `always-proceed`, guarded workspace access, and `permissions.deny` entries using

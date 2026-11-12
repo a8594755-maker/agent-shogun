@@ -1,13 +1,16 @@
-export function childEnv(config, source = process.env) {
-  const env = { ...source };
+export function childEnv(config, source = process.env, platform = process.platform) {
+  const env = {};
+  const matching=name=>Object.keys(env).find(key=>platform==='win32'?key.toLowerCase()===name.toLowerCase():key===name);
+  for(const [name,value]of Object.entries(source)){const old=matching(name);if(old)delete env[old];env[name]=value;}
   for (const [name, value] of Object.entries(config.guards.env || {})) {
-    if (value === null) delete env[name];
-    else env[name] = value;
+    const old=matching(name);if(old)delete env[old];
+    if (value !== null) env[name] = value;
   }
   if (config.guards.blockPush) {
-    const count = Number(env.GIT_CONFIG_COUNT || 0);
+    const count = Number(env[matching('GIT_CONFIG_COUNT')] || 0);
     if (!Number.isSafeInteger(count) || count < 0 || count > 10000) throw new Error('Invalid inherited GIT_CONFIG_COUNT.');
-    env.GIT_CONFIG_COUNT = String(count + 1);
+    const old=matching('GIT_CONFIG_COUNT');if(old)delete env[old];env.GIT_CONFIG_COUNT = String(count + 1);
+    for(const key of [`GIT_CONFIG_KEY_${count}`,`GIT_CONFIG_VALUE_${count}`]){const old=matching(key);if(old)delete env[old];}
     env[`GIT_CONFIG_KEY_${count}`] = 'remote.origin.pushurl';
     env[`GIT_CONFIG_VALUE_${count}`] = 'disabled://roster-do-not-push';
   }

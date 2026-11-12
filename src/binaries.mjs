@@ -13,7 +13,7 @@ async function commandFor(file) {
   if (/\.[cm]?js$/i.test(file)) return { file: process.execPath, args: [file] };
   if (/\.(cmd|bat|ps1)$/i.test(file)) {
     const wrapper = await fs.readFile(file, 'utf8');
-    const matches = [...wrapper.matchAll(/(?:%dp0%|\$basedir)[\\/]([^"\r\n]+?\.(?:exe|[cm]?js))/g)];
+    const matches = [...wrapper.matchAll(/(?:%dp0%|%~dp0|\$basedir)[\\/]*([^"\r\n]+?\.(?:exe|[cm]?js))/gi)];
     // npm shims can mention node.exe before the actual JavaScript entry point.
     matches.sort((a, b) => Number(/\.exe$/i.test(a[1])) - Number(/\.exe$/i.test(b[1])));
     for (const m of matches) {
@@ -42,10 +42,12 @@ export function binaryCandidates(name, configured, env=process.env, platform=pro
 export const binaryMissing = (name,configured) => `${name}: not installed; looked in ${binaryCandidates(name,configured).join(', ')}`;
 export async function findBinary(name, configured, env = process.env) {
   const candidates=binaryCandidates(name,configured,env);
+  const failures=[];
   for (const candidate of candidates) if (await executable(candidate)) {
     if(process.env.ROSTER_TEST_MODE && candidate!==process.execPath && !within(process.env.ROSTER_TEST_ROOT,candidate) && !within(fileURLToPath(new URL('../test/fakes/',import.meta.url)),candidate)) throw new Error('TEST PROVIDER GUARD: refusing real provider executable');
-    return { ...(await commandFor(candidate)), path: candidate };
+    try{return { ...(await commandFor(candidate)), path: candidate };}catch(e){failures.push(e.message);}
   }
+  if(configured&&failures.length)throw new Error(`${name}: configured wrapper could not be resolved: ${failures[0]}`);
   return null;
 }
 export async function probe(name, config, adapter) {

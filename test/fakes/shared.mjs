@@ -37,11 +37,15 @@ export async function fake(provider) {
   if (args.includes('--version')) { console.log(`${provider} fake-1.0`); return; }
   if (args[0] === 'models') {
     if (provider === 'grok') console.log(signedOut ? 'You are not authenticated.' : authUnknown ? 'Status unknown' : 'You are logged in with grok.com.\n\nDefault model: grok-4.7\n\nAvailable models:\n  * grok-4.7 (default)\n  - grok-4.7-build-fast\n  - grok-4.6\n  - grok-4.5');
-    else console.log('fake-small\nfake-large'); return;
+    else {
+      const catalog=JSON.parse(fs.readFileSync(new URL('../../skills/multi-agent-dispatch/references/model-catalog.json',import.meta.url),'utf8'));
+      console.log(['fake-small','fake-large',...(catalog.providers[provider]?.models||[]).map(m=>m.id)].join('\n'));
+    } return;
   }
   const val = flag => args[args.indexOf(flag) + 1];
   let prompt = '';
   if (provider === 'grok') prompt = fs.readFileSync(val('--prompt-file'), 'utf8');
+  else if (provider === 'agy'&&args.includes('--input-format')) {let input='';for await(const c of process.stdin)input+=c;prompt=JSON.parse(input).message.content;}
   else if (provider === 'agy') prompt = val('-p');
   else for await (const chunk of process.stdin) prompt += chunk;
   if(provider==='agy'){
@@ -83,7 +87,8 @@ export async function fake(provider) {
     console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: answer } }));
     console.log(JSON.stringify(limited ? { type: 'turn.failed', error: { message: answer } } : { type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 3, output_tokens: 5 } }));
   } else if (provider === 'agy') {
-    console.log(JSON.stringify({ conversation_id: id, status: limited ? 'ERROR' : 'SUCCESS', response: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5 }, denied_actions: [] }));
+    const result={ conversation_id: id, status: limited ? 'ERROR' : 'SUCCESS', response: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5 }, denied_actions: [] };
+    console.log(JSON.stringify(args.includes('--input-format')?{event:'result',result}:result));
   } else if (provider === 'grok') {
     const exhausted = prompt.includes('MAX_TURNS');
     if (exhausted) console.error('Error: max turns reached');
