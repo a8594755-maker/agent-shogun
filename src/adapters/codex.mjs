@@ -2,9 +2,10 @@ import fs from 'node:fs';
 import readline from 'node:readline';
 import { tokens } from './common.mjs';
 import { readCodexAllowance } from '../codex-usage.mjs';
+import { codexAuth } from '../provider-auth.mjs';
 
 export default {
-  name: 'codex',
+  name: 'codex', signIn: 'codex login', authState: codexAuth,
   build({ model, effort, access, web, sessionId, answer }) {
     const args = [...(sessionId && access === 'safe' ? ['--approve-for-me'] : []), 'exec', ...(sessionId ? ['resume', sessionId] : []), '-m', model, '-c', `model_reasoning_effort=${JSON.stringify(effort)}`];
     if (access === 'full') args.push(...(sessionId ? ['-c', 'sandbox_mode="danger-full-access"'] : ['-s', 'danger-full-access']), '-c', 'approval_policy="never"');

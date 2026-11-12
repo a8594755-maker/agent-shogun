@@ -39,7 +39,7 @@ async function run() {
     const prompt = await fsp.readFile(path.join(dir, 'prompt.txt'), 'utf8');
     const settings = path.join(dir, 'settings.json');
     if (meta.provider === 'agy') await writeJson(settings, agySettings(config, meta.web, meta.access));
-    const invocation = adapters[meta.provider].build({ ...meta, answer: answerFile, prompt, settings });
+    const invocation = adapters[meta.provider].build({ ...meta, answer: answerFile, prompt, promptFile: path.join(dir, 'prompt.txt'), settings });
     const outFd = fs.openSync(events, 'a'), errFd = fs.openSync(path.join(dir, 'stderr.txt'), 'a');
     let exitCode;
     try {
@@ -74,7 +74,7 @@ async function run() {
     const parsedFailure = adapters[meta.provider].parseFailure?.(stderrTail);
     const limited = !!failure && (!!parsedFailure?.limited || limitedMessage(limitText));
     const messageLine = limitText.split(/\r?\n/).find(limitedMessage) || '';
-    const result = { provider: meta.provider, model: meta.model, group: groupForModel(meta.provider, meta.model), state: failure ? 'failed' : 'done', error: failure, exitCode, startedAt: meta.startedAt, endedAt: new Date().toISOString(), sessionId: parsed.sessionId || meta.sessionId, tokens: parsed.usage || { total: 0 }, details: parsed.details, limited, ...(limited ? { limitMessage: (parsedFailure?.message || messageLine).slice(0, 500), limitResetsAt: parsedFailure?.resetsAt || null } : {}), ...await gitState(meta.directory) };
+    const result = { provider: meta.provider, model: meta.model, group: groupForModel(meta.provider, meta.model), state: failure ? 'failed' : 'done', error: failure, exitCode, startedAt: meta.startedAt, endedAt: new Date().toISOString(), sessionId: parsed.sessionId || meta.sessionId || meta.providerSessionId, tokens: parsed.usage || { total: 0 }, costUsd: parsed.costUsd ?? null, details: parsed.details, limited, ...(limited ? { limitMessage: (parsedFailure?.message || messageLine).slice(0, 500), limitResetsAt: parsedFailure?.resetsAt || null } : {}), ...await gitState(meta.directory) };
     if ((await readJson(path.join(dir, 'result.json'), null))?.error === 'interrupted') return;
     await writeJson(path.join(dir, 'result.json'), result);
     await fsp.appendFile(path.join(sessionDir(root, name), 'turns.jsonl'), JSON.stringify({ turn: meta.turn, ...result }) + '\n');

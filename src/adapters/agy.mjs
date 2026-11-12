@@ -1,7 +1,8 @@
 import { envelope, tokens } from './common.mjs';
 import { readAgyUsage, parseAgyFailure } from '../agy-usage.mjs';
+import { agyAuth } from '../provider-auth.mjs';
 export default {
-  name: 'agy', modelsArgs: ['models'],
+  name: 'agy', modelsArgs: ['models'], signIn: 'agy', authState: agyAuth,
   parseModels(text) { return text.split(/\r?\n/).map(s => s.trim()).filter(s => s && !/^fetching\b/i.test(s)).map(s => s.split(/\s/)[0]); },
   build({ model, effort, sessionId, settings, prompt }) {
     return { args: ['-p', prompt, '--model', model, '--effort', effort, '--output-format', 'json', '--settings', settings, '--mode', 'accept-edits', '--disable-slash-commands', ...(sessionId ? ['--conversation', sessionId] : [])] };

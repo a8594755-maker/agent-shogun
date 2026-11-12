@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { exec } from './io.mjs';
 
 async function executable(file) {
@@ -28,20 +29,22 @@ export async function findBinary(name, configured, env = process.env) {
   else for (const dir of (env.PATH || env.Path || '').split(path.delimiter).filter(Boolean)) {
     for (const ext of process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : ['']) candidates.push(path.join(dir.replace(/^"|"$/g, ''), name + ext));
   }
+  if (!configured && name === 'grok') candidates.push(path.join(env.USERPROFILE || env.HOME || os.homedir(), '.grok', 'bin', process.platform === 'win32' ? 'grok.exe' : 'grok'));
   for (const candidate of candidates) if (await executable(candidate)) return { ...(await commandFor(candidate)), path: candidate };
   return null;
 }
 export async function probe(name, config, adapter) {
   let binary;
   try { binary = await findBinary(name, config.providers[name].binary); }
-  catch (e) { return { provider: name, installed: false, reason: e.message, models: [] }; }
-  if (!binary) return { provider: name, installed: false, reason: 'not installed', models: [] };
+  catch (e) { return { provider: name, installed: false, authState: 'unknown', signIn: adapter.signIn, reason: e.message, models: [] }; }
+  if (!binary) return { provider: name, installed: false, authState: 'unknown', signIn: adapter.signIn, reason: 'not installed', models: [] };
   const run = args => exec(binary.file, [...binary.args, ...args], { timeout: 15000, windowsHide: true, maxBuffer: 1024 * 1024 });
-  let version = 'unknown', models = [], modelsSource = 'CLI has no model-list command';
+  let version = 'unknown', models = [], modelsOutput, modelsListed = false, modelsSource = 'CLI has no model-list command';
   try { version = (await run(['--version'])).stdout.trim(); } catch { /* installation can still launch */ }
   if (adapter.modelsArgs) {
-    try { models = adapter.parseModels((await run(adapter.modelsArgs)).stdout); modelsSource = 'CLI models'; }
+    try { modelsOutput = (await run(adapter.modelsArgs)).stdout; models = adapter.parseModels(modelsOutput); modelsListed = true; modelsSource = 'CLI models'; }
     catch { modelsSource = 'model listing unavailable'; }
   }
-  return { provider: name, installed: true, version, models, modelsSource, configuredModel: config.providers[name].model };
+  const authState = await adapter.authState({ binary, modelsOutput }).catch(() => 'unknown');
+  return { provider: name, installed: true, version, models, modelsListed, modelsSource, configuredModel: config.providers[name].model, authState, signIn: adapter.signIn };
 }

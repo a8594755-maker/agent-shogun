@@ -5,6 +5,10 @@ export async function fake(provider) {
   const args = process.argv.slice(2);
   // node --test also discovers helper files under test/; discovery must be inert.
   if (!args.length) return;
+  const signedOut = process.env.ROSTER_FAKE_SIGNED_OUT === provider;
+  const authUnknown = process.env.ROSTER_FAKE_AUTH_UNKNOWN === provider;
+  if (provider === 'codex' && args[0] === 'login' && args[1] === 'status') { console.log(authUnknown ? 'unavailable' : signedOut ? 'Not logged in' : 'Logged in using ChatGPT'); return; }
+  if (provider === 'claude' && args[0] === 'auth' && args[1] === 'status') { console.log(JSON.stringify(authUnknown ? {} : { loggedIn: !signedOut })); return; }
   if (provider === 'codex' && args[0] === 'app-server') {
     let initialized = false, notified = false;
     const mode = process.env.ROSTER_FAKE_RPC_MODE;
@@ -23,21 +27,26 @@ export async function fake(provider) {
     return;
   }
   if (provider === 'agy' && args.includes('--print') && args.includes('/usage')) {
+    if (signedOut || authUnknown) { console.error(signedOut ? 'You are not authenticated.' : 'Temporarily unavailable'); process.exitCode = 1; return; }
     if (args.includes('--disable-slash-commands') || args.includes('--model')) throw new Error('Usage must not be a model turn');
     console.log(fs.readFileSync(new URL('../fixtures/agy-usage.json', import.meta.url), 'utf8')); return;
   }
   if (args.includes('--version')) { console.log(`${provider} fake-1.0`); return; }
-  if (args[0] === 'models') { console.log('fake-small\nfake-large'); return; }
+  if (args[0] === 'models') {
+    if (provider === 'grok') console.log(signedOut ? 'You are not authenticated.' : authUnknown ? 'Status unknown' : 'You are logged in with grok.com.\n\nDefault model: grok-4.7\n\nAvailable models:\n  * grok-4.7 (default)\n  - grok-4.7-build-fast\n  - grok-4.6\n  - grok-4.5');
+    else console.log('fake-small\nfake-large'); return;
+  }
   const val = flag => args[args.indexOf(flag) + 1];
   let prompt = '';
-  if (provider === 'agy') prompt = val('-p');
+  if (provider === 'grok') prompt = fs.readFileSync(val('--prompt-file'), 'utf8');
+  else if (provider === 'agy') prompt = val('-p');
   else for await (const chunk of process.stdin) prompt += chunk;
   if (provider === 'agy' && prompt.includes('STRUCTURED_LIMIT')) {
     console.error('AGY_ERROR: ' + JSON.stringify({ short_error: 'RESOURCE_EXHAUSTED (code 429): quota exhausted. Resets in 1h1m35s.', status: 'RESOURCE_EXHAUSTED', error_code: 429 })); process.exitCode = 3; return;
   }
-  const resumed = args.includes('resume') || args.includes('--conversation') || args.includes('--resume');
-  const prior = provider === 'codex' ? val('resume') : provider === 'agy' ? val('--conversation') : val('--resume');
-  const id = resumed ? prior : `fake-${provider}-conversation`;
+  const resumed = args.includes('resume') || args.includes('--conversation') || args.includes('--resume') || args.includes('-r');
+  const prior = provider === 'codex' ? val('resume') : provider === 'agy' ? val('--conversation') : provider === 'grok' ? val('-r') : val('--resume');
+  const id = resumed ? prior : provider === 'grok' ? val('-s') : `fake-${provider}-conversation`;
   if (provider === 'codex') console.log(JSON.stringify({ type: 'thread.started', thread_id: id }));
   if (prompt.includes('SLOW')) {
     if (prompt.includes('TREE')) {
@@ -58,6 +67,11 @@ export async function fake(provider) {
     console.log(JSON.stringify(limited ? { type: 'turn.failed', error: { message: answer } } : { type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 3, output_tokens: 5 } }));
   } else if (provider === 'agy') {
     console.log(JSON.stringify({ conversation_id: id, status: limited ? 'ERROR' : 'SUCCESS', response: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5 }, denied_actions: [] }));
+  } else if (provider === 'grok') {
+    const exhausted = prompt.includes('MAX_TURNS');
+    if (exhausted) console.error('Error: max turns reached');
+    console.log(JSON.stringify({ text: answer, stopReason: exhausted ? 'max_turn_requests' : limited ? 'refusal' : 'end_turn', sessionId: id, usage: { input_tokens: 10, output_tokens: 5, reasoning_tokens: 2, total_tokens: 15 }, num_turns: 1, ...(prompt.includes('NO_COST') ? {} : { total_cost_usd: 0.0167 }) }));
+    if (exhausted) process.exitCode = 1;
   } else {
     console.log(JSON.stringify({ type: 'result', session_id: id, subtype: limited ? 'error_during_execution' : 'success', is_error: limited, result: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 2 }, permission_denials: [] }));
   }

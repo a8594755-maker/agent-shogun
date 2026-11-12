@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { exec } from '../src/io.mjs';
-import { defaults } from '../src/config.mjs';
+import { defaults, providerNames } from '../src/config.mjs';
 
 export const project = fileURLToPath(new URL('..', import.meta.url));
 export const cli = path.join(project, 'bin', 'roster.mjs');
@@ -20,7 +20,7 @@ export async function scratch(t) {
   await exec('git', ['-C', root, 'add', '.']);
   await exec('git', ['-C', root, 'commit', '-m', 'Seed']);
   const config = structuredClone(defaults);
-  for (const name of ['codex', 'agy', 'claude']) config.providers[name].binary = path.join(project, 'test', 'fakes', `${name}.mjs`);
+  for (const name of providerNames) config.providers[name].binary = path.join(project, 'test', 'fakes', `${name}.mjs`);
   await fs.writeFile(path.join(root, 'roster.config.json'), JSON.stringify(config));
   const env = { ...process.env, HOME: parent, USERPROFILE: parent, CODEX_HOME: path.join(parent, '.codex') };
   async function run(...args) {

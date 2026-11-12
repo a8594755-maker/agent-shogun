@@ -38,7 +38,7 @@ for (const provider of ['codex', 'agy', 'claude']) {
 }
 test('providers probes only configured fakes and lists models when supported', async t => {
   const s = await scratch(t), p = await s.run('providers');
-  assert.equal(p.filter(p => p.installed).length, 3); assert.deepEqual(p[1].models, ['fake-small', 'fake-large']);
+  assert.equal(p.filter(p => p.installed).length, 4); assert.deepEqual(p[1].models, ['fake-small', 'fake-large']);
 });
 test('init preserves existing config and adds ignore entry exactly once', async t => {
   const s = await scratch(t), before = await fs.readFile(path.join(s.root, 'roster.config.json'), 'utf8');

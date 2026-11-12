@@ -1,7 +1,8 @@
 import { envelope, tokens } from './common.mjs';
 import { readClaudeUsage } from '../claude-usage.mjs';
+import { claudeAuth } from '../provider-auth.mjs';
 export default {
-  name: 'claude',
+  name: 'claude', signIn: 'claude auth login', authState: claudeAuth,
   build({ model, effort, access, sessionId }) {
     return { args: ['-p', '--output-format', 'json', '--model', model, '--effort', effort, '--permission-mode', access === 'full' ? 'bypassPermissions' : 'acceptEdits', ...(sessionId ? ['--resume', sessionId] : [])], stdin: true };
   },

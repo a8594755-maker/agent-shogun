@@ -7,6 +7,7 @@ import { adapters } from './adapters/index.mjs';
 import { usage, setUsage } from './usage.mjs';
 import { pick } from './pick.mjs';
 import * as sessions from './sessions.mjs';
+import { loadCatalog, setCatalog, modelDrift } from './catalog.mjs';
 
 const help = `roster 0.1.0 — coding CLI workers and allowance-aware dispatch
 Usage: roster <command> [options] [--json]
@@ -14,7 +15,8 @@ Usage: roster <command> [options] [--json]
   providers
   usage [--refresh]
   usage set <provider> --window <label> --used <percent> --resets <ISO> [--window ...] [--plan <name>] [--group <id>]
-  pick --kind <ui|server|review|mechanical|research> [--not-family <provider>]
+  catalog show | status | set <file.json>
+  pick --kind <kind> [--not-family <provider>]
   start <name> --provider <p> --brief <file> [--model <m>] [--effort <e>]
         [--dir <path> | --worktree <path> --branch <b> --base <ref>] [--access safe|full] [--web]
   send <name> --message <file or text>
@@ -24,7 +26,7 @@ Usage: roster <command> [options] [--json]
   stop <name>
   review <name> --by <provider> [--brief <file>]`;
 const definitions = {
-  init: {}, providers: {}, usage: { refresh: false, window: true, used: true, resets: true, plan: true, group: true },
+  init: {}, providers: {}, catalog: {}, usage: { refresh: false, window: true, used: true, resets: true, plan: true, group: true },
   pick: { kind: true, 'not-family': true },
   start: { provider: true, model: true, effort: true, brief: true, dir: true, worktree: true, branch: true, base: true, access: true, web: false },
   send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true }
@@ -87,12 +89,15 @@ function table(rows, columns) {
 }
 function human(command, value) {
   if (command === 'answer') return value.answer;
-  if (command === 'pick') return value.reason;
+  if (command === 'pick') return [...(value.warnings || []).map(w => `WARNING: ${w}`), value.reason].join('\n');
+  if (command === 'catalog-status') return value.line;
+  if (command === 'catalog-show') return [`Catalog: ${value.verifiedAt} by ${value.verifiedBy}`, table(Object.entries(value.providers).flatMap(([provider, data]) => data.models.map(m => ({ provider, model: m.id, group: m.group, tier: m.tier, bestFor: m.bestFor.join('; ') }))), ['provider', 'model', 'group', 'tier', 'bestFor']), table(Object.entries(value.allocation).map(([kind, choices]) => ({ kind, first: `${choices[0].provider}/${choices[0].model}`, second: choices[1] ? `${choices[1].provider}/${choices[1].model}` : '-' })), ['kind', 'first', 'second'])].join('\n');
   if (command === 'help') return help;
   if (command === 'usage' && Array.isArray(value)) {
-    return table(value.flatMap(r => r.groups.flatMap(g => (g.windows.length ? g.windows : [{ label: 'unknown' }]).map(w => ({ provider: r.provider, group: g.id, window: w.label, used: w.usedPercent == null ? '?' : `${w.usedPercent}%`, resets: w.resetsAt, plan: r.plan, age: `${Math.round(w.ageSeconds ?? r.ageSeconds ?? 0)}s${w.stale || g.stale ? ' stale' : ''}`, source: w.source || r.source, state: g.limited ? `limited since ${g.limitedSince}: ${g.lastMessage}` : g.unknown ? g.reason : 'known', tokens5h: g.tokenGauge.last5Hours, tokens7d: g.tokenGauge.last7Days })))), ['provider', 'group', 'window', 'used', 'resets', 'plan', 'age', 'source', 'state', 'tokens5h', 'tokens7d']);
+    const text = table(value.flatMap(r => r.groups.flatMap(g => (g.windows.length ? g.windows : [{ label: 'unknown' }]).map(w => ({ provider: r.provider, group: g.id, window: w.label, used: w.usedPercent == null ? '?' : `${w.usedPercent}%`, resets: w.resetsAt, plan: r.plan, age: `${Math.round(w.ageSeconds ?? r.ageSeconds ?? 0)}s${w.stale || g.stale ? ' stale' : ''}`, source: w.source || r.source, state: g.limited ? `limited since ${g.limitedSince}: ${g.lastMessage}` : g.unknown ? g.reason : 'known', tokens5h: g.tokenGauge.last5Hours, tokens7d: g.tokenGauge.last7Days, usd5h: g.costGauge?.last5Hours.totalUsd, usd7d: g.costGauge?.last7Days.totalUsd })))), ['provider', 'group', 'window', 'used', 'resets', 'plan', 'age', 'source', 'state', 'tokens5h', 'tokens7d', 'usd5h', 'usd7d']);
+    return [text, ...value.flatMap(r => r.catalogWarnings || []).map(w => `WARNING: ${w}`)].join('\n');
   }
-  if (command === 'providers') return table(value.flatMap(r => (r.models.length ? r.models : [`${r.configuredModel || '-'} (${r.modelsSource || r.reason})`]).map((model, i) => ({ provider: i ? '' : r.provider, installed: i ? '' : r.installed ? 'yes' : 'no', version: i ? '' : r.version, models: model }))), ['provider', 'installed', 'version', 'models']);
+  if (command === 'providers') return [table(value.flatMap(r => (r.models.length ? r.models : [`${r.configuredModel || '-'} (${r.modelsSource || r.reason})`]).map((model, i) => ({ provider: i ? '' : r.provider, installed: i ? '' : r.installed ? 'yes' : 'no', auth: i ? '' : r.authState, signIn: i ? '' : r.signIn, version: i ? '' : r.version, models: model }))), ['provider', 'installed', 'version', 'auth', 'signIn', 'models']), ...value.flatMap(r => r.catalogWarnings || []).map(w => `WARNING: ${w}`)].join('\n');
   if (command === 'status' || command === 'wait') return table((value.sessions || (Array.isArray(value) ? value : [value])).map(r => ({ ...r, seconds: Math.round(r.seconds), tokens: r.tokens?.total, head: r.head?.slice(0, 12) })), ['name', 'state', 'error', 'provider', 'model', 'turn', 'seconds', 'tokens', 'head', 'uncommitted', 'answer']);
   const rows = Array.isArray(value) ? value : [value];
   return table(rows, [...new Set(rows.flatMap(Object.keys))]);
@@ -103,17 +108,29 @@ export async function main(argv = process.argv.slice(2)) {
     const parsed = parseArgs(argv); json = parsed.json;
     const { command, options: o, positional: p } = parsed;
     if (command === 'help') { console.log(json ? JSON.stringify({ help }) : help); return; }
-    const root = await repoRoot(), config = await loadConfig(root);
-    const providers = () => Promise.all(providerNames.map(name => probe(name, config, adapters[name])));
+    const root = await repoRoot().catch(e => { if (command === 'catalog') return process.cwd(); throw e; }), config = await loadConfig(root);
+    const catalogInfo = await loadCatalog(root, config);
+    const providers = async () => {
+      const result = await Promise.all(providerNames.map(name => probe(name, config, adapters[name])));
+      const drift = modelDrift(catalogInfo.catalog, result);
+      return result.map(p => ({ ...p, catalogWarnings: [...(catalogInfo.status.stale ? [catalogInfo.status.line] : []), ...(drift.get(p.provider) || [])] }));
+    };
+    let outputCommand = command;
     let value;
     switch (command) {
       case 'init': arity(p, 0); value = await init(root); break;
       case 'providers': arity(p, 0); value = await providers(); break;
+      case 'catalog':
+        if (p[0] === 'status') { arity(p, 1); value = catalogInfo.status; outputCommand = 'catalog-status'; if (value.stale) process.exitCode = 3; }
+        else if (p[0] === 'show') { arity(p, 1); if (!catalogInfo.catalog) throw new Error(catalogInfo.status.line); value = catalogInfo.catalog; outputCommand = 'catalog-show'; }
+        else if (p[0] === 'set') { arity(p, 2); value = await setCatalog(root, config, path.resolve(p[1])); }
+        else throw new Error('Use catalog show, catalog status, or catalog set <file.json>.');
+        break;
       case 'usage':
         if (p[0] === 'set') { arity(p, 2); if (o.refresh) throw new Error('--refresh is for reading usage.'); value = await setUsage(root, p[1], windowsFrom(parsed.sequence), o.plan, o.group); }
-        else { arity(p, 0); if (parsed.sequence.some(([k]) => k !== 'refresh')) throw new Error('Reading options require usage set.'); value = await usage(root, config, { refresh: o.refresh }); }
+        else { arity(p, 0); if (parsed.sequence.some(([k]) => k !== 'refresh')) throw new Error('Reading options require usage set.'); const probes = await providers(); value = (await usage(root, config, { refresh: o.refresh })).map(r => ({ ...r, catalogWarnings: probes.find(p => p.provider === r.provider)?.catalogWarnings || [] })); }
         break;
-      case 'pick': arity(p, 0); if (o['not-family']) checkProvider(o['not-family']); value = pick(config, requireOption(o, 'kind'), await providers(), await usage(root, config), o['not-family']); if (!value.selected) process.exitCode = 1; break;
+      case 'pick': arity(p, 0); if (o['not-family']) checkProvider(o['not-family']); value = pick(config, requireOption(o, 'kind'), await providers(), await usage(root, config), o['not-family'], catalogInfo); if (!value.selected) process.exitCode = 1; break;
       case 'start': arity(p, 1); requireOption(o, 'provider'); value = await sessions.start(root, config, p[0], o, await fs.readFile(path.resolve(requireOption(o, 'brief')), 'utf8')); break;
       case 'send': arity(p, 1); value = await sessions.send(root, config, p[0], await messageText(requireOption(o, 'message'))); break;
       case 'status': arity(p, 0, 1); value = await sessions.status(root, p[0]); break;
@@ -122,6 +139,6 @@ export async function main(argv = process.argv.slice(2)) {
       case 'stop': arity(p, 1); value = await sessions.stop(root, p[0]); break;
       case 'review': arity(p, 1); value = await sessions.review(root, config, p[0], checkProvider(requireOption(o, 'by')), o.brief ? await fs.readFile(path.resolve(o.brief), 'utf8') : ''); break;
     }
-    console.log(json ? JSON.stringify(value) : human(command, value));
+    console.log(json ? JSON.stringify(value) : human(outputCommand, value));
   } catch (e) { console.error(json ? JSON.stringify({ error: e.message }) : `roster: ${e.message}`); process.exitCode = 1; }
 }

@@ -9,11 +9,19 @@
       "effort": "low"
     },
     "claude": {
-      "model": "sonnet",
+      "model": "claude-sonnet-5-5",
       "effort": "medium"
+    },
+    "grok": {
+      "model": "grok-4.7-build-fast",
+      "effort": "low"
     }
   },
   "access": "safe",
+  "catalog": {
+    "path": null,
+    "maxAgeDays": 15
+  },
   "guards": {
     "blockPush": true,
     "env": {
@@ -22,122 +30,6 @@
     "antigravityDeny": true
   },
   "briefHeader": "Work only in your assigned directory. Commit only on your assigned branch. Never push, deploy, or publish. Run the type check and tests yourself and loop until green. Never weaken an existing test.",
-  "kinds": {
-    "ui": [
-      {
-        "provider": "claude",
-        "model": "sonnet",
-        "effort": "medium"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low"
-      },
-      {
-        "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "medium"
-      },
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "low"
-      }
-    ],
-    "server": [
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "low"
-      },
-      {
-        "provider": "claude",
-        "model": "sonnet",
-        "effort": "medium"
-      },
-      {
-        "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "medium"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low"
-      }
-    ],
-    "mechanical": [
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "low"
-      },
-      {
-        "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "medium"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low"
-      },
-      {
-        "provider": "claude",
-        "model": "sonnet",
-        "effort": "medium"
-      }
-    ],
-    "review": [
-      {
-        "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "medium"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low"
-      },
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "low"
-      },
-      {
-        "provider": "claude",
-        "model": "sonnet",
-        "effort": "medium"
-      }
-    ],
-    "research": [
-      {
-        "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "low",
-        "web": true
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low",
-        "web": true
-      },
-      {
-        "provider": "claude",
-        "model": "sonnet",
-        "effort": "medium",
-        "web": true
-      },
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "low",
-        "web": true
-      }
-    ]
-  },
   "usage": {
     "ceiling": 90,
     "balancePoints": 25,

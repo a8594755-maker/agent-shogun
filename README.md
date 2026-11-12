@@ -5,6 +5,10 @@ starts detached turns, resumes the same conversations, records answers and token
 counts, and recommends a provider with room left. It has zero runtime dependencies
 and no build step. Requires Node.js 18+, Git, and separately installed provider CLIs.
 
+Providers: Codex, Antigravity, Claude Code, and Grok Build. The portable skill
+includes its own model catalog and research instructions, so it remains usable
+without installing roster or cloning a particular target project.
+
 No licence has been selected yet. See [LICENSE-TODO.md](LICENSE-TODO.md).
 
 ## Install
@@ -63,9 +67,12 @@ never a shell assembled from user text. `--flag=value` is supported.
 | --- | --- |
 | `init` | Write `roster.config.json` if absent and add `.roster/` to `.gitignore`; preserve an existing config. |
 | `providers` | Find binaries, probe `--version`, list models when a listing command exists. Missing CLIs do not break other providers. |
+| `catalog show [--json]` | Read the catalog in roster's installed skill folder, or the configured skill folder. Works outside Git repositories too. |
+| `catalog status [--json]` | Report verification date, age in days and next check. Exit 3 with one clear line if missing/invalid or older than `catalog.maxAgeDays`; exit 0 otherwise. |
+| `catalog set <file.json>` | Validate before changing anything; archive the previous and incoming catalog, write the new JSON, regenerate the skill's marked tables and date lines, then sync the full skill copy. |
 | `usage [--refresh]` | Show windows, percentage, resets, plan, source, reading age, staleness, learned limits, and local token gauges. Refresh bypasses the source cache. |
 | `usage set <provider> --window <label> --used <0–100> --resets <ISO> [--plan <text>] [--group <id>]` | Record a dashboard/planner reading. Repeat complete window groups. Other saved windows are retained. Antigravity groups: `gemini` (default) or `third-party`; other providers use `default`. |
-| `pick --kind <ui\|server\|review\|mechanical\|research> [--not-family <provider>]` | Recommend provider, model, effort, and research web request with the numbers and exclusions used. Exit 1 if none qualify. |
+| `pick --kind <kind> [--not-family <provider>]` | Recommend a signed-in provider, model and effort using user preferences, the catalog and allowance. Kinds are open strings; mechanical aliases tests. Exit 1 if none qualify. |
 | `start <name> --provider <p> --brief <file>` | Start in the background, returning a name and `running` state. Optional `--model`, `--effort`, `--dir`, `--access safe\|full`, and `--web`. |
 | `start … --worktree <path> --branch <branch> [--base <ref>]` | Create a linked worktree and branch if absent; otherwise verify the existing worktree's branch. Base defaults to HEAD. Cannot combine with `--dir`. |
 | `send <name> --message <file or text>` | Start a follow-up in the same conversation. An existing path is read as UTF-8; otherwise the argument is literal text. Refuse overlapping turns or a changed branch. |
@@ -113,6 +120,18 @@ In **both** modes, by default:
   without `--web`, curl/wget, URL tools, and MCP.
 - Every turn includes the configured executor header plus assigned directory,
   branch, access, and requested web policy.
+
+Grok safe sessions use `--permission-mode default --sandbox workspace` plus
+`--deny` rules for pushes and common deploy/publish commands. Its bundled guide
+recommends `workspace` for coding; its separate automation advice recommends
+always-approve, which roster deliberately does not enable for safe access.
+Default-mode headless writes/commands may therefore be denied. The guide documents
+kernel sandbox enforcement on Linux/macOS only, and warns that unsupported
+built-in profiles may continue unenforced; **do not assume Windows isolation**.
+Grok full sessions explicitly use `bypassPermissions` and sandbox `off`. Both
+modes retain roster's child-environment guards. Without `--web`, Grok also receives
+`--disable-web-search`. Grok creates a chosen UUID up front and resumes with `-r`;
+prompts use `--prompt-file`, so spaces and long briefs are not shell arguments.
 
 These are accident guards. They do **not** prevent an intentional worker from
 overriding its environment, pushing to a different remote or explicit URL, using
@@ -200,6 +219,63 @@ is more than 25 points above the least-full known candidate. Unknown values
 never masquerade as 0%. JSON includes candidates, per-window numbers and rejected
 providers. The current model is a preference, not a promise of model availability.
 
+Every adapter also implements `authState()` without inference. Codex uses
+`login status`, Claude uses `auth status --json`, Antigravity uses its successful
+built-in `/usage` response, and Grok parses the signed-in/signed-out banner from
+`models`. Roster returns only the state and sign-in command, never raw sign-in
+diagnostics or identity fields. `providers` shows authentication separately from
+installation. `pick` requires **signed in**; signed-out and unknown-auth candidates
+are excluded. No credential or cookie files are opened by these readers.
+
+Grok has no headless subscription-allowance command. **Never send `grok -p /usage`:**
+it is an inference prompt. `grok usage` concerns persisted session spend, not
+remaining plan allowance. Roster instead sums reported turn tokens and
+`total_cost_usd` in 5-hour/7-day gauges and learns quota errors. Missing or partial
+cost is unknown, not zero; JSON reports counted and unreported turns separately.
+Max-turn failures remain failed and preserve any reported spend, but are not
+misclassified as quota exhaustion. No Grok cost is inferred from token prices.
+
+### Portable model catalog and freshness
+
+The source of truth is
+`skills/multi-agent-dispatch/references/model-catalog.json`. SKILL.md prominently
+states its last verification date/by and next-check date, followed by generated
+model/allowance tables and the first two choices for each work kind. The initial
+2026-11-12 inventory explicitly says capability and allocation have **not** been
+verified online. `frontier?`/`strong?`/`fast?`, best-for suggestions, and allocation
+are provisional; null release dates and context size 0 mean unknown, while cost 1
+is a neutral unverified placeholder. They are not measured model comparisons.
+
+Before dispatch, the skill tells the agent to compare today's date, research
+first when older than 15 days or when asked, and follow
+`references/model-check-brief.md`. It routes research to the eligible provider
+with most allowance, requires exact ID verification and opening sources behind
+allocation changes, includes the previous catalog, and reports changes. If the
+check cannot run, it instructs the agent to disclose the reason and catalog age
+before continuing. Rejected model IDs and newly listed IDs make the catalog stale.
+
+The skill alone contains everything needed for direct CLI dispatch and manual
+catalog/table/date updates. With roster, `catalog set` handles validation, dated
+history in `references/catalog-history/`, table/date generation, and full-folder
+sync. Inputs are validated and rendered before any mutation; each replacement is
+atomic, but a machine crash between replacements is not a multi-file transaction.
+The skill is kept under 160 lines; research detail stays in the reference brief.
+
+`pick` uses explicit user `kinds`, then catalog `allocation`, then built-in
+defaults, and warns on a stale/missing catalog. `init` leaves `kinds` absent so
+future catalog updates can take effect; existing explicit kinds continue to win.
+Kinds are open strings, including `hardest`, `ui`, `server`, `tests`, `review`,
+`security`, `research`, and `bulk`; `mechanical` aliases `tests`. Catalog allocation
+remains a preference and allowance comparison can rebalance the choice.
+
+`providers`, `usage`, and `pick` warn when a successful signed-in model listing
+has added or omitted catalog IDs. An unavailable model-list command is not proof
+of retirement: native Claude/Codex IDs in the initial inventory include the
+owner-supplied CLI inventory and cannot be independently checked by their simple
+help/model-list interface. The JSON records these limits under `notConfirmed`.
+`catalog status` reports date freshness; live model drift is reported separately.
+Repository configuration never rewrites the installed skill automatically.
+
 ### Optional Claude status-line cache
 
 Manually add this one line to Claude Code's settings, substituting the clone path:
@@ -267,8 +343,8 @@ resolve from the command's working directory; absolute paths are recommended.
 
 | Field | Default / meaning |
 | --- | --- |
-| `providers.<codex\|agy\|claude>.binary` | Search PATH unless configured; use a native executable or .js/.mjs/.cjs entry point. Common npm shims resolve without invoking a shell; arbitrary shell wrappers require the underlying executable. |
-| `providers.<p>.model`, `.effort` | codex: `gpt-6-astra`, low; agy: `gemini-3.8-flash-low`, low; claude: `sonnet`, medium. Used when start flags are absent. |
+| `providers.<codex\|agy\|claude\|grok>.binary` | Search PATH unless configured; Grok additionally checks `~/.grok/bin/grok[.exe]`. Use a native executable or .js/.mjs/.cjs entry point. Common npm shims resolve without a shell. |
+| `providers.<p>.model`, `.effort` | codex: `gpt-6-astra`, low; agy: `gemini-3.8-flash-low`, low; claude: `claude-sonnet-5-5`, medium; grok: `grok-4.7-build-fast`, low. Used when start flags are absent. |
 | `access` | `safe`; session metadata preserves this choice for follow-ups. |
 | `guards.blockPush` | `true`; child environment override for origin pushes. |
 | `guards.env` | Map of environment names to replacement strings. Set to `false` to disable overrides; set an entry to `null` to remove that variable from the child. Use dummy values, never secrets in shared config. |
@@ -282,6 +358,8 @@ resolve from the command's working directory; absolute paths are recommended.
 | `usage.cacheSeconds` | 30; cached automatic source lifetime. `--refresh` bypasses it. |
 | `usage.externalCommand` | `null`; optional executable/argument array providing external allowance JSON. |
 | `usage.externalTimeoutMs` | 15000; external-command time limit. |
+| `catalog.path` | `null`; use the installed repository's skill. Override with an external skill folder or its `references/model-catalog.json`. Relative paths resolve from the controlling repository (cwd outside Git for catalog commands). |
+| `catalog.maxAgeDays` | 15; status exits 3 when age is strictly greater. The skill's normal next-check cadence remains verified date + 15 days. |
 
 Provider versions are probed with `--version`. Antigravity exposes `models`;
 the checked Codex and Claude CLIs have no model-list command, so roster labels
@@ -342,10 +420,10 @@ The reusable planning workflow is [skills/multi-agent-dispatch/SKILL.md](skills/
 ## Agent skill and plugin packaging
 
 The canonical Agent Skills directory is `skills/multi-agent-dispatch/`.
-`npm run sync-skill` copies its `SKILL.md` to
-`.agents/skills/multi-agent-dispatch/SKILL.md` for Codex and Antigravity repository
+`npm run sync-skill` copies its entire folder, including references and catalog
+history, to `.agents/skills/multi-agent-dispatch/` for Codex and Antigravity repository
 discovery, without a Windows symlink. A test fails if these files differ. Edit the
-canonical file, then sync; the copy is committed for fresh clones. Agent skills
+canonical folder, then sync; the copy is committed for fresh clones. Agent skills
 do not install the CLI: use `npm link`, or `node <path>/bin/roster.mjs`.
 
 Claude Code has `.claude-plugin/plugin.json` and a one-plugin marketplace at
@@ -377,6 +455,11 @@ Win-CodexBar integration is tested against mapped fixtures and its public Rust
 serialization, not a live installation. macOS/Linux, live reboot, and real-provider
 full access remain unverified.
 
+Initial catalog capabilities, release dates, context windows, relative allowance
+costs and allocations remain unverified online. The separate planning agent will
+replace this provisional inventory with researched evidence. Native Claude/Codex
+model retirement checks require a vendor source or a richer discovery interface.
+
 ## Real smoke evidence
 
 The usage follow-up on Windows verified live Antigravity `/usage` group readings,
@@ -402,3 +485,21 @@ call. Claude 2.1.296 was discovered and its help checked, but its real smoke tur
 was intentionally skipped to conserve allowance. No live reboot, macOS/Linux run,
 or real-provider full-access turn was performed. The guards were exercised offline;
 they were not challenged with a real push or deployment.
+
+Grok Build 1.0.41 was smoke-tested separately with `grok-4.7-build-fast`, safe
+access, and a chosen session UUID. A preflight with effort `none` failed before
+inference: `unknown effort level 'none'; use one of: xhigh, high, medium, low`.
+The default and seed catalog now use the measured minimum, `low`. With low effort,
+the initial turn and resumed follow-up both ended `cancelled` (empty stderr).
+No `hello.txt` or task commit was created. Initial answer:
+`I'll create hello.txt with the word roster, commit it on main, and run the project's type check and tests until they pass.`
+The follow-up stated that the previous command was cancelled before any file was
+written and it would check the directory. The session IDs matched; reported costs
+were USD 0.03112088 and 0.00909024. Roster correctly marked both turns failed.
+The reason for cancellation was not confirmed; safe access was not escalated.
+
+The live Antigravity model list also added `gemini-4-hydrogen-*` variants after the
+initial inventory was seeded. The new drift checks reported these uncatalogued
+IDs in providers, usage and picks. A current verification date does not resolve
+that warning; the instructed online model check must confirm their capabilities
+before changing the catalog/allocation.

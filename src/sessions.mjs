@@ -64,7 +64,7 @@ export async function status(root, name) {
     const file = path.join(turnDir(root, name, turn), 'answer.txt');
     if (await fs.access(file).then(() => true, () => false)) { lastAnswer = file; break; }
   }
-  return { name, state: result?.state || 'running', error: result?.error, provider: meta.provider, model: meta.model, effort: meta.effort, access: meta.access, turn: meta.turn, seconds: Math.max(0, (Date.parse(result?.endedAt || new Date().toISOString()) - Date.parse(meta.startedAt)) / 1000), tokens: result?.tokens || null, sessionId: result?.sessionId || meta.sessionId || null, directory: meta.directory, ...await gitState(meta.directory), answer: lastAnswer, ...(result?.details ? { details: result.details } : {}) };
+  return { name, state: result?.state || 'running', error: result?.error, provider: meta.provider, model: meta.model, effort: meta.effort, access: meta.access, turn: meta.turn, seconds: Math.max(0, (Date.parse(result?.endedAt || new Date().toISOString()) - Date.parse(meta.startedAt)) / 1000), tokens: result?.tokens || null, costUsd: result?.costUsd ?? null, sessionId: result?.sessionId || meta.sessionId || meta.providerSessionId || null, directory: meta.directory, ...await gitState(meta.directory), answer: lastAnswer, ...(result?.details ? { details: result.details } : {}) };
 }
 async function launch(root, meta, prompt, config, binary) {
   const dir = turnDir(root, meta.name, meta.turn);
@@ -114,7 +114,7 @@ export async function start(root, config, name, opts, brief) {
     const directory = await ensureWorktree(root, opts);
     await repoRoot(directory);
     const state = await gitState(directory);
-    const meta = { name, provider: opts.provider, model: opts.model || config.providers[opts.provider].model, effort: opts.effort || config.providers[opts.provider].effort, access: opts.access || config.access, web: !!opts.web, directory, branch: state.branch, base: opts.base || null, turn: 1, startedAt: new Date().toISOString() };
+    const meta = { name, provider: opts.provider, ...(opts.provider === 'grok' ? { providerSessionId: randomUUID() } : {}), model: opts.model || config.providers[opts.provider].model, effort: opts.effort || config.providers[opts.provider].effort, access: opts.access || config.access, web: !!opts.web, directory, branch: state.branch, base: opts.base || null, turn: 1, startedAt: new Date().toISOString() };
     return launch(root, meta, wrappedPrompt(meta, brief, config), config, binary);
   });
 }

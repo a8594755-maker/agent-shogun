@@ -2,15 +2,17 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { readJson } from './io.mjs';
 
-export const providerNames = ['codex', 'agy', 'claude'];
+export const providerNames = ['codex', 'agy', 'claude', 'grok'];
 const choice = (provider, model, effort = 'medium', web = false) => ({ provider, model, effort, ...(web ? { web } : {}) });
 export const defaults = {
   providers: {
     codex: { model: 'gpt-6-astra', effort: 'low' },
     agy: { model: 'gemini-3.8-flash-low', effort: 'low' },
-    claude: { model: 'sonnet', effort: 'medium' }
+    claude: { model: 'claude-sonnet-5-5', effort: 'medium' },
+    grok: { model: 'grok-4.7-build-fast', effort: 'low' }
   },
   access: 'safe',
+  catalog: { path: null, maxAgeDays: 15 },
   guards: { blockPush: true, env: { CLOUDFLARE_API_TOKEN: 'roster-deploy-disabled' }, antigravityDeny: true },
   briefHeader: 'Work only in your assigned directory. Commit only on your assigned branch. Never push, deploy, or publish. Run the type check and tests yourself and loop until green. Never weaken an existing test.',
   kinds: {
@@ -35,7 +37,10 @@ export function checkProvider(name) {
   return name;
 }
 export async function loadConfig(root) {
-  const c = merge(defaults, await readJson(path.join(root, 'roster.config.json'), {}));
+  const user = await readJson(path.join(root, 'roster.config.json'), {});
+  const c = merge(defaults, user);
+  Object.defineProperty(c, 'userKinds', { value: user.kinds || {}, enumerable: false });
+  if (!Number.isFinite(c.catalog.maxAgeDays) || c.catalog.maxAgeDays < 0 || c.catalog.path !== null && typeof c.catalog.path !== 'string') throw new Error('Invalid catalog path or maxAgeDays.');
   if (!['safe', 'full'].includes(c.access)) throw new Error('access must be safe or full.');
   for (const [key, value] of Object.entries(c.usage)) {
     if (key === 'externalCommand') {
@@ -60,7 +65,8 @@ export async function loadConfig(root) {
   return c;
 }
 export async function init(root) {
-  await fs.writeFile(path.join(root, 'roster.config.json'), JSON.stringify(defaults, null, 2) + '\n', { flag: 'wx' }).catch(e => { if (e.code !== 'EEXIST') throw e; });
+  const initial = { ...defaults }; delete initial.kinds;
+  await fs.writeFile(path.join(root, 'roster.config.json'), JSON.stringify(initial, null, 2) + '\n', { flag: 'wx' }).catch(e => { if (e.code !== 'EEXIST') throw e; });
   const file = path.join(root, '.gitignore');
   const text = await fs.readFile(file, 'utf8').catch(e => { if (e.code === 'ENOENT') return ''; throw e; });
   if (!text.split(/\r?\n/).some(line => ['.roster/', '/.roster/'].includes(line.trim()))) await fs.appendFile(file, `${text && !text.endsWith('\n') ? '\n' : ''}.roster/\n`);

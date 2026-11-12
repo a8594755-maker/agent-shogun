@@ -13,7 +13,7 @@ import { adapters } from '../src/adapters/index.mjs';
 import { findBinary } from '../src/binaries.mjs';
 import { safeName } from '../src/io.mjs';
 
-const installed = ['codex', 'agy', 'claude'].map(provider => ({ provider, installed: true }));
+const installed = ['codex', 'agy', 'claude'].map(provider => ({ provider, installed: true, authState: 'signed in' }));
 const readings = (codex, agy, claude) => [codex, agy, claude].map((percent, i) => ({ provider: installed[i].provider, windows: percent === null ? [] : [{ usedPercent: percent, label: 'weekly' }] }));
 test('pick follows kind order and reports numbers', () => {
   const p = pick(defaults, 'ui', installed, readings(20, 30, 40));
