@@ -1,9 +1,11 @@
 import { envelope, tokens } from './common.mjs';
 import { readClaudeUsage } from '../claude-usage.mjs';
 import { claudeAuth } from '../provider-auth.mjs';
+import { resolveModelEffort } from '../model-selection.mjs';
 export default {
   name: 'claude', signIn: 'claude auth login', authState: claudeAuth,
-  build({ model, effort, access, sessionId }) {
+  build({ model, effort, access, sessionId, catalog }) {
+    ({model,effort}=resolveModelEffort('claude',model,effort,{catalog}));
     return { args: ['-p', '--output-format', 'json', '--model', model, '--effort', effort, '--permission-mode', access === 'full' ? 'bypassPermissions' : 'acceptEdits', ...(sessionId ? ['--resume', sessionId] : [])], stdin: true };
   },
   async parse(file) {

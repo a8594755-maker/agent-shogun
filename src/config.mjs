@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { readJson } from './io.mjs';
+import { rosterHome } from './state.mjs';
 
 export const providerNames = ['codex', 'agy', 'claude', 'grok'];
 export const defaults = {
@@ -40,8 +41,14 @@ export async function loadConfig(root, { cwd = root, configPath } = {}) {
       dir = path.dirname(dir);
     }
   }
-  const user = file ? await readJson(file) : {};
-  const c = merge(defaults, user);
+  const userFile=path.join(rosterHome(),'config.json'), personal=await readJson(userFile,{});
+  const project = file ? await readJson(file) : {};
+  const user=merge(personal,project), c = merge(defaults, user);
+  for(const p of providerNames){
+    const layer=project.providers?.[p]?.path!==undefined||project.providers?.[p]?.binary!==undefined?project.providers[p]:personal.providers?.[p];
+    const value=layer?.path??layer?.binary;
+    if(value!==undefined){ if(typeof value!=='string'||!value)throw new Error(`Invalid provider path for ${p}.`); c.providers[p].binary=value.startsWith('~')?value:path.resolve(layer===project.providers?.[p]?path.dirname(file):path.dirname(userFile),value); }
+  }
   Object.defineProperty(c, 'userKinds', { value: user.kinds || {}, enumerable: false });
   Object.defineProperty(c, 'configFile', { value: file, enumerable: false });
   if (!Number.isFinite(c.catalog.maxAgeDays) || c.catalog.maxAgeDays < 0 || c.catalog.path !== null && typeof c.catalog.path !== 'string') throw new Error('Invalid catalog path or maxAgeDays.');

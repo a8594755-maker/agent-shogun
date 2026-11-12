@@ -1,3 +1,4 @@
+import './isolation.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -23,7 +24,7 @@ const fixture = name => fileURLToPath(new URL(`./fixtures/${name}.json`, import.
 const fake = async name => findBinary(name, path.join(project, 'test', 'fakes', `${name}.mjs`));
 const fixedNow = Date.parse('2026-11-12T12:00:00Z');
 async function temporary(t) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'roster-source-test-'));
+  const dir = await fs.mkdtemp(path.join(process.env.ROSTER_TEST_ROOT, 'roster-source-test-'));
   t.after(() => fs.rm(dir, { recursive: true, force: true })); return dir;
 }
 test('Antigravity direct /usage preserves both independent model groups and converts remaining', async () => {
@@ -84,7 +85,7 @@ test('failed Codex fallback retains stale file evidence', async t => {
   } finally { delete process.env.ROSTER_FAKE_RPC_MODE; }
 });
 async function runHook(input, dir, args = []) {
-  const child = spawn(process.execPath, [path.join(project, 'scripts', 'claude-statusline-cache.mjs'), ...args], { env: { ...process.env, HOME: dir, USERPROFILE: dir }, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+  const child = spawn(process.execPath, [path.join(project, 'scripts', 'claude-statusline-cache.mjs'), ...args], { env: { ...process.env, HOME: dir, USERPROFILE: dir, ROSTER_HOME: path.join(dir, '.roster') }, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   let stdout = '', stderr = ''; child.stdout.on('data', d => { stdout += d; }); child.stderr.on('data', d => { stderr += d; });
   child.stdin.end(input);
   const code = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', resolve); });

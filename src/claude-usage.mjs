@@ -2,8 +2,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { readJson } from './io.mjs';
 import { windowReading, isoSeconds } from './allowance.mjs';
+import { rosterHome } from './state.mjs';
 
-export async function readClaudeUsage({ cacheFile = path.join(os.homedir(), '.roster', 'claude-usage.json') } = {}) {
+export async function readClaudeUsage({ cacheFile = path.join(rosterHome(), 'claude-usage.json') } = {}) {
   try {
     const cache = await readJson(cacheFile, null);
     if (!cache || !Number.isFinite(Date.parse(cache.readAt))) return { unknown: true, reason: 'No Claude status-line cache; install the optional hook or use usage set.', source: 'Claude status-line cache' };

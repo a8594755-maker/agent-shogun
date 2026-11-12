@@ -6,18 +6,21 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJson, git, gitState, repoRoot, safeName, sleep } from './io.mjs';
 import { checkProvider } from './config.mjs';
-import { findBinary } from './binaries.mjs';
+import { findBinary, binaryMissing } from './binaries.mjs';
 import { familyForModel } from './allowance.mjs';
+import { stateDirectory } from './state.mjs';
+import { processIdentity, sameProcess } from './process-owner.mjs';
+import { sessionSelection } from './model-selection.mjs';
 
 const runnerFile = fileURLToPath(new URL('./runner.mjs', import.meta.url));
-export const sessionDir = (root, name) => path.join(root, '.roster', 'sessions', safeName(name));
+export const sessionDir = (root, name) => path.join(stateDirectory(root), 'sessions', safeName(name));
 export const turnDir = (root, name, turn) => path.join(sessionDir(root, name), `turn-${String(turn).padStart(4, '0')}`);
 export function alive(pid) {
   if (!Number.isSafeInteger(pid) || pid <= 0) return false;
   try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
 }
 async function lock(root, name, fn) {
-  const dir = path.join(root, '.roster', 'locks', safeName(name));
+  const dir = path.join(stateDirectory(root), 'locks', safeName(name));
   await fs.mkdir(path.dirname(dir), { recursive: true });
   try { await fs.mkdir(dir); }
   catch (e) {
@@ -42,7 +45,7 @@ async function loadMeta(root, name) {
 }
 export async function status(root, name) {
   if (!name) {
-    const names = await fs.readdir(path.join(root, '.roster', 'sessions')).catch(() => []);
+    const names = await fs.readdir(path.join(stateDirectory(root), 'sessions')).catch(() => []);
     return Promise.all(names.filter(n => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(n)).map(n => status(root, n)));
   }
   const meta = await loadMeta(root, name), dir = turnDir(root, name, meta.turn);
@@ -52,7 +55,9 @@ export async function status(root, name) {
     const heartbeat = await readJson(path.join(dir, 'heartbeat.json'), null);
     const since = Date.parse(heartbeat?.at || running?.launchedAt || meta.startedAt);
     const rebooted = Date.now() - os.uptime() * 1000 > Date.parse(meta.startedAt) + 3000;
-    if (rebooted || running && !alive(running.pid) || Date.now() - since > 15000) {
+    const missing = running && !alive(running.pid);
+    const identityLost = running?.startTime && (rebooted || Date.now()-since>15000) && !await sameProcess(running);
+    if (missing || identityLost || rebooted && !running?.startTime || !running && Date.now()-since>15000) {
       // An interrupted result is durable; never signal a PID read from disk.
       result = { provider: meta.provider, state: 'failed', error: 'interrupted', startedAt: meta.startedAt, endedAt: new Date().toISOString(), tokens: { total: 0 } };
       await writeJson(path.join(dir, 'result.json'), result);
@@ -76,7 +81,9 @@ async function launch(root, meta, prompt, config, binary) {
   const worker = spawn(process.execPath, [runnerFile, root, meta.name, String(meta.turn)], { detached: true, stdio: 'ignore', windowsHide: true });
   try {
     await new Promise((resolve, reject) => { worker.once('spawn', resolve); worker.once('error', reject); });
-    await writeJson(path.join(dir, 'running.json'), { pid: worker.pid, nonce, launchedAt: meta.startedAt });
+    const identity = await processIdentity(worker.pid);
+    if (!identity) throw new Error('Cannot verify supervisor process identity.');
+    await writeJson(path.join(dir, 'running.json'), { ...identity, nonce, launchedAt: meta.startedAt });
   } catch (e) {
     await writeJson(path.join(dir, 'result.json'), { provider: meta.provider, state: 'failed', error: `Supervisor failed: ${e.message}`, endedAt: new Date().toISOString() });
     throw e;
@@ -108,13 +115,14 @@ export async function start(root, config, name, opts, brief) {
   safeName(name); checkProvider(opts.provider);
   if (!['safe', 'full'].includes(opts.access || config.access)) throw new Error('access must be safe or full.');
   const binary = await findBinary(opts.provider, config.providers[opts.provider].binary);
-  if (!binary) throw new Error(`${opts.provider}: not installed`);
+  if (!binary) throw new Error(binaryMissing(opts.provider,config.providers[opts.provider].binary));
+  const selected = await sessionSelection(root,config,opts.provider,opts.model || config.providers[opts.provider].model,opts.effort);
   return lock(root, name, async () => {
     if (await readJson(path.join(sessionDir(root, name), 'meta.json'), null)) throw new Error(`Session ${name} already exists.`);
     const directory = await ensureWorktree(root, opts);
     await repoRoot(directory);
     const state = await gitState(directory);
-    const meta = { name, provider: opts.provider, ...(opts.provider === 'grok' ? { providerSessionId: randomUUID() } : {}), model: opts.model || config.providers[opts.provider].model, effort: opts.effort || config.providers[opts.provider].effort, access: opts.access || config.access, web: !!opts.web, directory, branch: state.branch, base: opts.base || null, turn: 1, startedAt: new Date().toISOString() };
+    const meta = { name, provider: opts.provider, ...(opts.provider === 'grok' ? { providerSessionId: randomUUID() } : {}), ...selected, access: opts.access || config.access, web: !!opts.web, directory, branch: state.branch, base: opts.base || null, turn: 1, startedAt: new Date().toISOString() };
     return launch(root, meta, wrappedPrompt(meta, brief, config), config, binary);
   });
 }
@@ -128,7 +136,8 @@ export async function send(root, config, name, message) {
     const state = await gitState(previous.directory);
     if (state.branch !== previous.branch) throw new Error('Session branch changed; refusing to resume in another branch.');
     const binary = await findBinary(previous.provider, config.providers[previous.provider].binary);
-    if (!binary) throw new Error(`${previous.provider}: not installed`);
+    if (!binary) throw new Error(binaryMissing(previous.provider,config.providers[previous.provider].binary));
+    await sessionSelection(root,config,previous.provider,previous.model,previous.effort);
     const meta = { ...previous, turn: previous.turn + 1, sessionId, startedAt: new Date().toISOString() };
     return launch(root, meta, wrappedPrompt(meta, message, config), config, binary);
   });
@@ -148,7 +157,9 @@ export async function stop(root, name) {
     if (s.state !== 'running') return s;
     const dir = turnDir(root, name, s.turn);
     const request = await readJson(path.join(dir, 'request.json'));
-    await writeJson(path.join(dir, 'stop.json'), { nonce: request.nonce });
+    const running = await readJson(path.join(dir, 'running.json'), null);
+    if (running?.nonce !== request.nonce || !await sameProcess(running)) throw new Error('Supervisor ownership cannot be verified; refusing stop.');
+    await writeJson(path.join(dir, 'stop.json'), { nonce: request.nonce,requestedBy:process.pid,requestedAt:new Date().toISOString() });
     return { name, state: 'running', stopRequested: true, turn: s.turn };
   });
 }
@@ -166,7 +177,7 @@ export async function review(root, config, name, by, extra = '') {
   const authorState = await gitState(author.directory);
   if (!authorState.head || !authorState.branch || authorState.branch !== author.branch || authorState.uncommitted) throw new Error('Review requires the author branch to be unchanged and clean, with a commit.');
   const reviewName = `${name.slice(0, 40)}-review-${by}-${randomUUID().slice(0, 8)}`;
-  const worktree = path.join(root, '.roster', 'reviews', reviewName);
+  const worktree = path.join(stateDirectory(root), 'reviews', reviewName);
   await git(root, ['worktree', 'add', '--detach', worktree, authorState.head]);
   const prompt = `Review branch ${author.branch} at commit ${authorState.head}. Compare against ${author.base || 'the parent commit (or the empty tree for a root commit)'}.\nReport findings with file:line, severity, and concrete impact. Prove each finding with a test you write and run. Do not edit the author's files. Do not commit. Write temporary reproductions only in your separate review worktree; never change the implementation.\n${extra}`;
   return start(root, config, reviewName, { provider: by, dir: worktree, access: author.access }, prompt);

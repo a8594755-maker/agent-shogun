@@ -1,3 +1,4 @@
+import './isolation.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -178,8 +179,7 @@ test('an actually terminated supervisor becomes failed interrupted', async t => 
     if (fakePid) break; await sleep(20);
   }
   assert(fakePid);
-  if (process.platform === 'win32') await exec('taskkill.exe', ['/PID', String(running.pid), '/T', '/F'], { windowsHide: true });
-  else { process.kill(running.pid, 'SIGKILL'); try { process.kill(-fakePid, 'SIGKILL'); } catch (e) { if (e.code !== 'ESRCH') throw e; } }
+  await writeJson(path.join(turnDir(s.root,'crash',1),'test-abort.json'),{nonce:running.nonce});
   for (let i = 0; i < 100 && alive(running.pid); i++) await sleep(20);
   assert.equal((await s.run('status', 'crash')).error, 'interrupted');
 });

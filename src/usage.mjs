@@ -6,6 +6,7 @@ import { adapters } from './adapters/index.mjs';
 import { findBinary } from './binaries.mjs';
 import { groupsOf, groupForModel } from './allowance.mjs';
 import { readExternalUsage } from './external-usage.mjs';
+import { stateDirectory } from './state.mjs';
 
 export async function setUsage(root, provider, windows, plan, groupId = provider === 'agy' ? 'gemini' : 'default') {
   checkProvider(provider);
@@ -13,7 +14,7 @@ export async function setUsage(root, provider, windows, plan, groupId = provider
   const readAt = new Date().toISOString();
   for (const w of windows) if (!w.label || !Number.isFinite(w.usedPercent) || w.usedPercent < 0 || w.usedPercent > 100 || !Number.isFinite(Date.parse(w.resetsAt))) throw new Error('Each window needs a label, used 0–100, and an ISO reset time.');
   if (!windows.length || new Set(windows.map(w => w.label)).size !== windows.length) throw new Error('Supply unique --window readings.');
-  const file = path.join(root, '.roster', 'usage', `${provider}.supplied.json`);
+  const file = path.join(stateDirectory(root), 'usage', `${provider}.supplied.json`);
   const previous = await readJson(file, {}), groups = groupsOf(previous, provider);
   const old = groups.find(g => g.id === groupId);
   const name = groupId === 'gemini' ? 'Gemini Models' : groupId === 'third-party' ? 'Claude and GPT models' : 'All models';
@@ -22,7 +23,7 @@ export async function setUsage(root, provider, windows, plan, groupId = provider
   return { provider, ...supplied };
 }
 export async function turnReceipts(root) {
-  const sessions = path.join(root, '.roster', 'sessions'), receipts = [];
+  const sessions = path.join(stateDirectory(root), 'sessions'), receipts = [];
   for (const name of await fs.readdir(sessions).catch(() => [])) {
     const session = path.join(sessions, name);
     for (const turn of await fs.readdir(session).catch(() => [])) if (/^turn-\d+$/.test(turn)) {
@@ -47,7 +48,7 @@ function costGauge(rows, now) {
   return { last5Hours: sum(5 * 3600000), last7Days: sum(7 * 86400000), source: 'reported roster turn cost only; missing/partial costs are unknown' };
 }
 export async function usage(root, config, { refresh = false, now = Date.now(), sourceOptions = {} } = {}) {
-  const receipts = await turnReceipts(root), base = path.join(root, '.roster', 'usage');
+  const receipts = await turnReceipts(root), base = path.join(stateDirectory(root), 'usage');
   let external = [];
   if (config.usage.externalCommand) {
     const file = path.join(base, 'external.cache.json');

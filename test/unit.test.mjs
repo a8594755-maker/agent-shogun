@@ -1,3 +1,4 @@
+import './isolation.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -104,7 +105,7 @@ test('token counts avoid double-counting Codex cache and include Claude cache', 
   assert.equal(tokens({ input_tokens: 10, cache_read_input_tokens: 3, output_tokens: 5 }).total, 18);
 });
 async function temp(t) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'roster-fixture-'));
+  const dir = await fs.mkdtemp(path.join(process.env.ROSTER_TEST_ROOT, 'roster-fixture-'));
   t.after(() => fs.rm(dir, { recursive: true, force: true })); return dir;
 }
 const limit = used => ({ timestamp: '2026-11-12T12:00:00Z', payload: { rate_limits: { limit_id: 'codex', primary: { used_percent: used, window_minutes: 300, resets_at: 1795026619 }, secondary: { used_percent: 40, window_minutes: 10080, resets_at: 1795026619 }, plan_type: 'fixture' } } });
@@ -133,7 +134,7 @@ test('reverse reader handles chunk boundaries, UTF-8 and oversized lines', async
   const lines = []; for await (const line of reverseLines(file, 7, 100)) if (line) lines.push(line);
   assert.deepEqual(lines, ['last é', 'first Ω']);
 });
-test('binary discovery reports missing configured executable', async () => assert.equal(await findBinary('codex', path.join(os.tmpdir(), 'roster-not-installed.exe')), null));
+test('binary discovery reports missing configured executable', async () => assert.equal(await findBinary('codex', path.join(process.env.ROSTER_TEST_ROOT, 'roster-not-installed.exe')), null));
 test('configuration merges nested defaults and rejects invalid usage', async t => {
   const dir = await temp(t); await fs.writeFile(path.join(dir, 'roster.config.json'), JSON.stringify({ usage: { ceiling: 80 } }));
   const c = await loadConfig(dir); assert.equal(c.usage.ceiling, 80); assert.equal(c.usage.suppliedMaxAgeMinutes, 30);

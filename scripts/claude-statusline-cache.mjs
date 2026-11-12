@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { findBinary } from '../src/binaries.mjs';
+import { rosterHome } from '../src/state.mjs';
 
 let input = '';
 for await (const chunk of process.stdin) {
@@ -19,7 +20,7 @@ for (const key of ['five_hour', 'seven_day']) {
   if (w && Number.isFinite(w.used_percentage) && w.used_percentage >= 0 && w.used_percentage <= 100 && Number.isFinite(w.resets_at)) limits[key] = { used_percentage: w.used_percentage, resets_at: w.resets_at };
 }
 if (Object.keys(limits).length) {
-  const file = path.join(os.homedir(), '.roster', 'claude-usage.json'), temp = `${file}.${randomUUID()}.tmp`;
+  const file = path.join(rosterHome(), 'claude-usage.json'), temp = `${file}.${randomUUID()}.tmp`;
   try {
     await fs.mkdir(path.dirname(file), { recursive: true });
     await fs.writeFile(temp, JSON.stringify({ rate_limits: limits, readAt: new Date().toISOString() }) + '\n', { mode: 0o600, flag: 'wx' });

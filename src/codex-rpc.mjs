@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process';
 import { exec, sleep } from './io.mjs';
+import { ownChild, terminateOwned } from './process-owner.mjs';
 
 export async function readRateLimits(binary, { timeoutMs = 15000 } = {}) {
-  const child = spawn(binary.file, [...binary.args, 'app-server', '--stdio'], { shell: false, windowsHide: true, detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn(binary.file, [...binary.args, 'app-server', '--stdio'], { shell: false, windowsHide: true, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
   let buffer = '', pending, timer, closed = false, rejected;
   const exit = new Promise(resolve => child.once('close', () => { closed = true; pending?.reject(new Error('Codex app-server closed before replying.')); resolve(); }));
   child.on('error', () => { rejected = new Error('Cannot start Codex app-server.'); pending?.reject(rejected); });
@@ -29,6 +30,7 @@ export async function readRateLimits(binary, { timeoutMs = 15000 } = {}) {
     send({ jsonrpc: '2.0', id, method, ...(params === undefined ? {} : { params }) });
   });
   try {
+    await ownChild(child);
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Codex app-server usage timed out.')), timeoutMs); });
     return await Promise.race([timeout, (async () => {
       await request(1, 'initialize', { clientInfo: { name: 'roster', version: '0.1.0' }, capabilities: { experimentalApi: false } });
@@ -39,8 +41,7 @@ export async function readRateLimits(binary, { timeoutMs = 15000 } = {}) {
     clearTimeout(timer); child.stdin.end();
     await Promise.race([exit, sleep(500)]);
     if (!closed) {
-      if (process.platform === 'win32') await exec('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true }).catch(() => {});
-      else try { process.kill(-child.pid, 'SIGKILL'); } catch (e) { if (e.code !== 'ESRCH') throw e; }
+      await terminateOwned(child);
       await exit;
     }
   }

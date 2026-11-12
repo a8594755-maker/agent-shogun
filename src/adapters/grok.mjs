@@ -2,6 +2,7 @@ import { envelope, tokens } from './common.mjs';
 import { grokAuth } from '../provider-auth.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveModelEffort } from '../model-selection.mjs';
 
 export function grokSafeAllows(directory, configured) {
   const commands = configured || ['node --test', 'npm test'];
@@ -17,7 +18,8 @@ export function grokSafeAllows(directory, configured) {
 export default {
   name: 'grok', signIn: 'grok login', modelsArgs: ['models'], authState: grokAuth,
   parseModels(text) { return [...new Set([...text.matchAll(/^\s*[-*]\s+(grok-[\w.-]+)/gm)].map(m => m[1]))]; },
-  build({ model, effort, access, web, sessionId, providerSessionId, directory, promptFile, providerConfig }) {
+  build({ model, effort, access, web, sessionId, providerSessionId, directory, promptFile, providerConfig, catalog }) {
+    ({model,effort}=resolveModelEffort('grok',model,effort,{catalog}));
     const args = ['--prompt-file', promptFile, '-m', model, '--reasoning-effort', effort, '--output-format', 'json', '--cwd', directory, ...(sessionId ? ['-r', sessionId] : ['-s', providerSessionId])];
     if (access === 'full') args.push('--permission-mode', 'bypassPermissions', '--sandbox', 'off');
     else {

@@ -1,4 +1,5 @@
 import { groupForModel, familyForModel, groupsOf } from './allowance.mjs';
+import { resolveModelEffort } from './model-selection.mjs';
 
 function appliesToModel(window, model) {
   if (!window.label?.startsWith('weekly:')) return true;
@@ -27,7 +28,10 @@ export function pick(config, kind, installed, readings, notFamily, catalogInfo) 
   const allocationSource = override ? 'project rule' : fromCatalog ? 'skill catalog' : 'most allowance left';
   const warnings = [...new Set([...(catalogInfo?.status.stale ? [catalogInfo.status.line] : []), ...installed.flatMap(p => p.catalogWarnings || [])])];
   const rejected = [], candidates = [];
-  for (const choice of ordered) {
+  for (const configured of ordered) {
+    let choice;
+    try { choice={...configured,...resolveModelEffort(configured.provider,configured.model,configured.effort,{catalog:catalogInfo?.catalog,defaultEffort:config.providers[configured.provider].effort})}; }
+    catch(e){ rejected.push({...configured,reason:e.message}); continue; }
     const r = readings.find(x => x.provider === choice.provider) || { unknown: true, windows: [] };
     const groupId = groupForModel(choice.provider, choice.model), family = familyForModel(choice.provider, choice.model);
     const group = groupsOf(r, choice.provider).find(g => g.id === groupId);

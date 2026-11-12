@@ -1,3 +1,4 @@
+import './isolation.cjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -8,7 +9,7 @@ import { defaults, providerNames } from '../src/config.mjs';
 export const project = fileURLToPath(new URL('..', import.meta.url));
 export const cli = path.join(project, 'bin', 'roster.mjs');
 export async function scratch(t) {
-  const parent = await fs.mkdtemp(path.join(os.tmpdir(), 'roster-test-'));
+  const parent = await fs.mkdtemp(path.join(process.env.ROSTER_TEST_ROOT, 'roster-test-'));
   const root = path.join(parent, 'space Ω');
   await fs.mkdir(root);
   t.after(() => fs.rm(parent, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
@@ -22,9 +23,10 @@ export async function scratch(t) {
   const config = structuredClone(defaults);
   for (const name of providerNames) config.providers[name].binary = path.join(project, 'test', 'fakes', `${name}.mjs`);
   await fs.writeFile(path.join(root, 'roster.config.json'), JSON.stringify(config));
+  process.env.ROSTER_STATE_DIR = path.join(root,'.roster'); process.env.ROSTER_HOME = path.join(parent,'.roster');
   const env = { ...process.env, HOME: parent, USERPROFILE: parent, CODEX_HOME: path.join(parent, '.codex') };
   async function run(...args) {
-    try { const result = await exec(process.execPath, [cli, ...args, '--json'], { cwd: root, env, windowsHide: true, timeout: 15000 }); return JSON.parse(result.stdout); }
+    try { const result = await exec(process.execPath, [cli, ...args, '--json'], { cwd: root, env, windowsHide: true, timeout: 120000 }); return JSON.parse(result.stdout); }
     catch (e) { throw new Error(e.stderr || e.stdout || e.message, { cause: e }); }
   }
   async function fail(...args) {

@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { exec } from './io.mjs';
+import { within } from './state.mjs';
+import { fileURLToPath } from 'node:url';
 
 async function executable(file) {
   try { await fs.access(file, process.platform === 'win32' ? 0 : 1); return (await fs.stat(file)).isFile(); } catch { return false; }
@@ -23,21 +25,34 @@ async function commandFor(file) {
   }
   return { file, args: [] };
 }
-export async function findBinary(name, configured, env = process.env) {
+export function binaryCandidates(name, configured, env=process.env, platform=process.platform) {
+  const p=platform==='win32'?path.win32:path.posix;
+  const home=(platform==='win32'?env.USERPROFILE:env.HOME)||os.homedir();
   const candidates = [];
-  if (configured) candidates.push(path.resolve(configured));
-  else for (const dir of (env.PATH || env.Path || '').split(path.delimiter).filter(Boolean)) {
-    for (const ext of process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : ['']) candidates.push(path.join(dir.replace(/^"|"$/g, ''), name + ext));
+  if (configured) candidates.push(p.resolve(configured.replace(/^~(?=[\\/]|$)/,home)));
+  else {
+    for (const dir of (env.PATH || env.Path || '').split(platform==='win32'?';':':').filter(Boolean)) {
+      for (const ext of platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : ['']) candidates.push(p.join(dir.replace(/^"|"$/g, ''), name + ext));
+    }
+    if(name==='agy')candidates.push(platform==='win32'?p.join(env.LOCALAPPDATA||p.join(home,'AppData','Local'),'agy','bin','agy.exe'):p.join(env.XDG_BIN_HOME||p.join(home,'.local','bin'),'agy'));
+    if(name==='grok')candidates.push(p.join(home,'.grok','bin',platform==='win32'?'grok.exe':'grok'));
   }
-  if (!configured && name === 'grok') candidates.push(path.join(env.USERPROFILE || env.HOME || os.homedir(), '.grok', 'bin', process.platform === 'win32' ? 'grok.exe' : 'grok'));
-  for (const candidate of candidates) if (await executable(candidate)) return { ...(await commandFor(candidate)), path: candidate };
+  return [...new Set(candidates)];
+}
+export const binaryMissing = (name,configured) => `${name}: not installed; looked in ${binaryCandidates(name,configured).join(', ')}`;
+export async function findBinary(name, configured, env = process.env) {
+  const candidates=binaryCandidates(name,configured,env);
+  for (const candidate of candidates) if (await executable(candidate)) {
+    if(process.env.ROSTER_TEST_MODE && candidate!==process.execPath && !within(process.env.ROSTER_TEST_ROOT,candidate) && !within(fileURLToPath(new URL('../test/fakes/',import.meta.url)),candidate)) throw new Error('TEST PROVIDER GUARD: refusing real provider executable');
+    return { ...(await commandFor(candidate)), path: candidate };
+  }
   return null;
 }
 export async function probe(name, config, adapter) {
   let binary;
   try { binary = await findBinary(name, config.providers[name].binary); }
   catch (e) { return { provider: name, installed: false, authState: 'unknown', signIn: adapter.signIn, reason: e.message, models: [] }; }
-  if (!binary) return { provider: name, installed: false, authState: 'unknown', signIn: adapter.signIn, reason: 'not installed', models: [] };
+  if (!binary) return { provider: name, installed: false, authState: 'unknown', signIn: adapter.signIn, reason: binaryMissing(name,config.providers[name].binary), searched:binaryCandidates(name,config.providers[name].binary), models: [] };
   const run = args => exec(binary.file, [...binary.args, ...args], { timeout: 15000, windowsHide: true, maxBuffer: 1024 * 1024 });
   let version = 'unknown', models = [], modelsOutput, modelsListed = false, modelsSource = 'CLI has no model-list command';
   try { version = (await run(['--version'])).stdout.trim(); } catch { /* installation can still launch */ }

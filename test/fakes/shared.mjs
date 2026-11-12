@@ -1,6 +1,9 @@
+import '../isolation.cjs';
 import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import readline from 'node:readline';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
 export async function fake(provider) {
   const args = process.argv.slice(2);
   // node --test also discovers helper files under test/; discovery must be inert.
@@ -41,6 +44,10 @@ export async function fake(provider) {
   if (provider === 'grok') prompt = fs.readFileSync(val('--prompt-file'), 'utf8');
   else if (provider === 'agy') prompt = val('-p');
   else for await (const chunk of process.stdin) prompt += chunk;
+  if(provider==='agy'){
+    const suffix=/-(low|medium|high|xhigh|max|minimal|none)$/.exec(val('--model'))?.[1];
+    if(suffix&&suffix!==val('--effort')){console.error('invalid model selection: model/effort conflict');process.exitCode=2;return;}
+  }
   if (provider === 'agy' && prompt.includes('STRUCTURED_LIMIT')) {
     console.error('AGY_ERROR: ' + JSON.stringify({ short_error: 'RESOURCE_EXHAUSTED (code 429): quota exhausted. Resets in 1h1m35s.', status: 'RESOURCE_EXHAUSTED', error_code: 429 })); process.exitCode = 3; return;
   }
@@ -54,10 +61,20 @@ export async function fake(provider) {
       fs.writeFileSync('descendant.pid', String(descendant.pid));
     }
     fs.writeFileSync('ready.txt', String(process.pid));
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, prompt.includes('TREE') ? 8000 : 3000));
   }
   if (prompt.includes('MALFORMED')) { console.log('not json'); return; }
   let answer = resumed ? 'hello.txt' : 'DONE';
+  if(prompt.includes('RUN_NESTED_SUITE')){
+    const project=fileURLToPath(new URL('../../',import.meta.url));
+    const nestedEnv={...process.env};delete nestedEnv.NODE_TEST_CONTEXT;
+    const nested=spawn(process.execPath,['--test','--test-name-pattern=stop work|terminated supervisor|reboot or reused|interrupted supervisor','test/integration.test.mjs'],{cwd:project,env:nestedEnv,windowsHide:true,stdio:['ignore','pipe','pipe']});
+    let output='';nested.stdout.on('data',d=>{output+=d;});nested.stderr.on('data',d=>{output+=d;});
+    const code=await new Promise((resolve,reject)=>{nested.once('error',reject);nested.once('close',resolve);});
+    const passed=Number(/\bpass\s+(\d+)/.exec(output)?.[1]||0);
+    if(code!==0||passed<3){console.error('Nested tests did not execute the required cases.\n'+output);process.exitCode=1;return;}
+    answer='Nested suite passed\n'+output.trimEnd().split(/\r?\n/).slice(-8).join('\n');
+  }
   if (prompt.includes('CAPTURE')) answer = JSON.stringify({ args, push: process.env[`GIT_CONFIG_VALUE_${Number(process.env.GIT_CONFIG_COUNT) - 1}`], deploy: process.env.CLOUDFLARE_API_TOKEN, prompt, cwd: process.cwd() });
   const limited = prompt.includes('LIMIT');
   if (limited) answer = 'Rate limit exceeded: quota exhausted, try later.';

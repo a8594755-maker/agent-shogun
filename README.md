@@ -351,13 +351,15 @@ reader. Timeout is controlled by `usage.externalTimeoutMs` (15000 by default).
 
 ## Configuration
 
-`roster init` writes all defaults as editable JSON; every field is optional.
-Nested objects merge with defaults; arrays replace them. Relative binary paths
-resolve from the command's working directory; absolute paths are recommended.
+`roster init` writes defaults as editable JSON; every field is optional.
+`~/.roster/config.json` supplies personal settings below the nearest project
+configuration (`ROSTER_HOME` can override that home directory). Nested objects
+merge; arrays replace. Relative binary paths resolve from the config file's
+directory, and `~` expands to the home folder.
 
 | Field | Default / meaning |
 | --- | --- |
-| `providers.<codex\|agy\|claude\|grok>.binary` | Search PATH unless configured; Grok additionally checks `~/.grok/bin/grok[.exe]`. Use a native executable or .js/.mjs/.cjs entry point. Common npm shims resolve without a shell. |
+| `providers.<codex\|agy\|claude\|grok>.path` | Personal or project executable path; `binary` remains a supported alias. Configured paths win, then PATH, then documented user install locations. Use a native executable or .js/.mjs/.cjs entry point. |
 | `providers.<p>.model`, `.effort` | codex: `gpt-6.1-sol`, low; agy: `gemini-3.8-flash-low`, low; claude: `claude-sonnet-5-5`, medium; grok: `grok-4.7-build-fast`, low. Used when start flags are absent. |
 | `access` | `safe`; session metadata preserves this choice for follow-ups. |
 | `guards.blockPush` | `true`; child environment override for origin pushes. |
@@ -385,6 +387,19 @@ only a commented example for a consuming project's own config:
 { "kinds": { "ui": [{ "provider": "claude", "model": "claude-opus-5-5", "effort": "high" }] } }
 ```
 
+Antigravity discovery checks `%LOCALAPPDATA%/agy/bin/agy.exe` on Windows and
+`~/.local/bin/agy` on macOS/Linux after PATH. Grok checks `~/.grok/bin/grok.exe`
+on Windows or `~/.grok/bin/grok` on macOS/Linux. Missing installations report the
+paths searched. See the vendors' [Antigravity installation guide](https://antigravity.google/docs/getting-started?tab=cli)
+and [Grok installer](https://x.ai/cli/install.sh).
+
+Model and effort are normalized before launch. A suffixed Antigravity ID such as
+`gemini-4-carbon-high` supplies `high` when `--effort` is absent; explicit conflicting
+effort fails immediately. A base family plus `--effort high` resolves to the offered
+suffixed ID. Known catalog effort restrictions also apply to Codex, Claude
+(including tier aliases), and Grok. `pick` emits the same normalized pair accepted
+by `start`, rather than mixing a requested model with a provider's default effort.
+
 Provider versions are probed with `--version`. Antigravity exposes `models`;
 the checked Codex and Claude CLIs have no model-list command, so roster labels
 their configured model separately instead of inventing a catalogue. Missing
@@ -399,6 +414,7 @@ installation and unavailable model listing are separate states.
   turn-0001/
     prompt.txt  events.jsonl  answer.txt  stderr.txt
     request.json  running.json  heartbeat.json  result.json
+    child.json  control.jsonl
     settings.json  stop.json
 ```
 
@@ -408,15 +424,24 @@ private: prompts, outputs and errors can contain sensitive work. Config is meant
 to be shareable; session state is ignored. No inherited environment dump is saved.
 
 A detached Node supervisor owns each child and emits heartbeat/result files.
-Atomic JSON replacement prevents partial reads. Per-session locks reject
-concurrent mutations and recover when their owner process is gone. Status uses
-the result first; missing/dead ownership, a reboot, or a heartbeat missing for
-15 seconds yields `failed: interrupted`. Actual reboot behavior is modeled in
-tests; a live reboot is not part of the smoke check. Very long machine suspension
-or severe event-loop starvation can also look interrupted. Do not use network
-filesystems for state. Supervisor death can leave descendants behind; roster
-deliberately refuses to kill unverified persisted PIDs. On Unix stop signals the
-owned provider process group; on Windows it runs `taskkill /PID <live-child> /T /F`.
+Provider processes are detached on Windows too, isolating their consoles from the
+supervisor. Atomic JSON replacement prevents partial reads. Per-session locks
+reject concurrent mutations. State defaults to `<repo>/.roster`; `ROSTER_STATE_DIR`
+overrides the entire state directory. No heartbeat-age threshold kills a worker.
+When a heartbeat is stale, status verifies the supervisor PID and creation time
+before declaring it interrupted. Dead ownership/reboots can yield `failed:
+interrupted`; a delayed heartbeat with a live matching identity remains running.
+Control-file I/O errors are audited and retried, not converted into a stop.
+
+Stop requests carry the turn nonce and requester/time. The supervisor signals only
+its live ChildProcess registered at spawn, after verifying PID plus OS creation
+time. Neither stop nor recovery signals a PID merely read from disk. `child.json`
+records ownership and `control.jsonl` distinguishes explicit stops, signals and I/O
+errors. Unsolicited console SIGINT is recorded and ignored; SIGTERM is classified
+as interruption, not an explicit stop. Old records without identity proof cannot
+be signalled by stop. Supervisor death can still leave descendants behind.
+On Unix stop signals the owned provider group; on Windows it uses
+`taskkill /PID <verified-live-child> /T /F`.
 Processes that deliberately detach from that tree/group can escape termination.
 
 `done` means the CLI reported a successful turn, not that its answer is correct,
@@ -429,6 +454,13 @@ Run `node --test` (or `npm test`). Tests use fake Node executables and fixture
 logs, temporary Git repositories and a temporary home; they never call a real
 provider or the network. Helpers are inert if discovered directly by Node's test
 runner. Windows is verified locally; macOS/Linux require independent execution.
+Every test bootstraps a temporary `ROSTER_STATE_DIR`, `ROSTER_HOME`, provider home
+and app-data folders, also propagated to its Node children. A filesystem guard
+fails any attempt to access real `.roster` state; a provider guard refuses real
+CLI executables. Nested suite runs create independent isolation roots. Tests use
+authenticated test-only abort requests rather than signalling PIDs from fixtures.
+A managed fake worker runs the stop/recovery subset of this suite in the actual
+source repository, proving that its child tests do not stop their parent session.
 
 Add one adapter in `src/adapters/` with `build`, `parse`, and `readUsage`. `build`
 returns an argument array and whether the prompt goes on stdin. `parse` returns
