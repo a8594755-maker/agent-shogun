@@ -9,7 +9,7 @@ export const project = fileURLToPath(new URL('..', import.meta.url));
 export const cli = path.join(project, 'bin', 'roster.mjs');
 export async function scratch(t) {
   const parent = await fs.mkdtemp(path.join(os.tmpdir(), 'roster-test-'));
-  const root = path.join(parent, 'space 日本語');
+  const root = path.join(parent, 'space Ω');
   await fs.mkdir(root);
   t.after(() => fs.rm(parent, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
   await exec('git', ['init', '-b', 'main', root]);
@@ -31,6 +31,6 @@ export async function scratch(t) {
     try { await exec(process.execPath, [cli, ...args, '--json'], { cwd: root, env, windowsHide: true, timeout: 15000 }); throw new Error('Expected failure'); }
     catch (e) { if (!e.code) throw e; return { code: e.code, ...JSON.parse(e.stderr || e.stdout) }; }
   }
-  async function brief(text) { const file = path.join(root, 'brief with spaces 日本語.txt'); await fs.writeFile(file, text); return file; }
+  async function brief(text) { const file = path.join(root, 'brief with spaces Ω.txt'); await fs.writeFile(file, text); return file; }
   return { root, parent, env, config, run, fail, brief };
 }

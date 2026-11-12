@@ -42,6 +42,13 @@ export async function loadConfig(root) {
   }
   if (c.usage.ceiling > 100) throw new Error('usage.ceiling cannot exceed 100.');
   if (typeof c.briefHeader !== 'string') throw new Error('briefHeader must be text.');
+  for (const p of providerNames) {
+    const provider = c.providers[p];
+    if (!provider || typeof provider.model !== 'string' || !provider.model || typeof provider.effort !== 'string' || !provider.effort) throw new Error(`Invalid model/effort for ${p}.`);
+    if (provider.binary !== undefined && typeof provider.binary !== 'string') throw new Error(`Invalid binary path for ${p}.`);
+  }
+  if (c.guards.env !== false && (!c.guards.env || typeof c.guards.env !== 'object' || Array.isArray(c.guards.env))) throw new Error('guards.env must be an object or false.');
+  for (const value of Object.values(c.guards.env || {})) if (value !== null && typeof value !== 'string') throw new Error('Environment replacements must be strings or null.');
   for (const choices of Object.values(c.kinds)) {
     if (!Array.isArray(choices)) throw new Error('Each kind must be an ordered array.');
     for (const entry of choices) checkProvider(entry.provider);

@@ -1,5 +1,9 @@
 export function childEnv(config, source = process.env) {
-  const env = { ...source, ...config.guards.env };
+  const env = { ...source };
+  for (const [name, value] of Object.entries(config.guards.env || {})) {
+    if (value === null) delete env[name];
+    else env[name] = value;
+  }
   if (config.guards.blockPush) {
     const count = Number(env.GIT_CONFIG_COUNT || 0);
     if (!Number.isSafeInteger(count) || count < 0 || count > 10000) throw new Error('Invalid inherited GIT_CONFIG_COUNT.');

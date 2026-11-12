@@ -12,7 +12,7 @@ async function run() {
   const [, , root, name, n] = process.argv;
   const dir = turnDir(root, name, Number(n));
   const { meta, config, binary, nonce } = await readJson(path.join(dir, 'request.json'));
-  let child, stopped = false, tickBusy = false, timer, stderrTail = '', stdoutTail = '', parsed = {}, failure;
+  let child, stopped = false, interrupted = false, tickBusy = false, timer, stderrTail = '', stdoutTail = '', parsed = {}, failure;
   const answerFile = path.join(dir, 'answer.txt'), events = path.join(dir, 'events.jsonl');
   const beat = () => writeJson(path.join(dir, 'heartbeat.json'), { nonce, at: new Date().toISOString() });
   async function killTree() {
@@ -52,7 +52,9 @@ async function run() {
         tickBusy = true;
         try {
           const stop = await readJson(path.join(dir, 'stop.json'), null);
-          if (stop?.nonce === nonce) await interrupt();
+          const result = await readJson(path.join(dir, 'result.json'), null);
+          if (result?.error === 'interrupted') { interrupted = true; await interrupt(); }
+          else if (stop?.nonce === nonce) await interrupt();
           else await beat();
         } catch (e) { failure = e.message; await interrupt(); }
         finally { tickBusy = false; }
@@ -63,18 +65,23 @@ async function run() {
     catch (e) { failure = `Invalid provider output: ${e.message}`; }
     if (parsed.answer) await fsp.writeFile(answerFile, parsed.answer);
     if (!fs.existsSync(answerFile)) await fsp.writeFile(answerFile, '');
-    if (stopped) failure = 'stopped';
+    if (interrupted) failure = 'interrupted';
+    else if (stopped) failure = 'stopped';
     else if (exitCode !== 0) failure ||= `Provider exited ${exitCode}`;
     else if (!parsed.ok) failure ||= parsed.error || 'Provider did not report a successful completed turn.';
     const limitText = [parsed.error, parsed.ok ? '' : parsed.answer, stderrTail, stdoutTail].filter(Boolean).join('\n');
     const limited = !!failure && limitedMessage(limitText);
     const messageLine = limitText.split(/\r?\n/).find(limitedMessage) || '';
     const result = { provider: meta.provider, state: failure ? 'failed' : 'done', error: failure, exitCode, startedAt: meta.startedAt, endedAt: new Date().toISOString(), sessionId: parsed.sessionId || meta.sessionId, tokens: parsed.usage || { total: 0 }, details: parsed.details, limited, ...(limited ? { limitMessage: messageLine.slice(0, 500) } : {}), ...await gitState(meta.directory) };
+    if ((await readJson(path.join(dir, 'result.json'), null))?.error === 'interrupted') return;
     await writeJson(path.join(dir, 'result.json'), result);
     await fsp.appendFile(path.join(sessionDir(root, name), 'turns.jsonl'), JSON.stringify({ turn: meta.turn, ...result }) + '\n');
   } catch (e) {
     await killTree();
-    await writeJson(path.join(dir, 'result.json'), { provider: meta.provider, state: 'failed', error: e.message, startedAt: meta.startedAt, endedAt: new Date().toISOString(), tokens: { total: 0 } });
+    if ((await readJson(path.join(dir, 'result.json'), null))?.error === 'interrupted') return;
+    const result = { provider: meta.provider, state: 'failed', error: e.message, startedAt: meta.startedAt, endedAt: new Date().toISOString(), tokens: { total: 0 } };
+    await writeJson(path.join(dir, 'result.json'), result);
+    await fsp.appendFile(path.join(sessionDir(root, name), 'turns.jsonl'), JSON.stringify({ turn: meta.turn, ...result }) + '\n');
   } finally { clearInterval(timer); }
 }
 await run();

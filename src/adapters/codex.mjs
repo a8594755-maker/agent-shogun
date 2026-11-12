@@ -18,8 +18,8 @@ export default {
     for await (const line of readline.createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity })) {
       let event; try { event = JSON.parse(line); } catch { continue; }
       if (event.type === 'thread.started') sessionId = event.thread_id;
-      if (event.type === 'turn.completed') { usage = event.usage; completed = true; }
-      if (event.type === 'turn.failed' || event.type === 'error') error = event.error?.message || event.message || 'Provider error';
+      if (event.type === 'turn.completed') { usage = event.usage; completed = true; error = undefined; }
+      if (event.type === 'turn.failed' || event.type === 'error') { error = event.error?.message || event.message || 'Provider error'; completed = false; }
       if (event.type === 'item.completed' && event.item?.type === 'agent_message') answer = event.item.text || '';
     }
     return { sessionId, usage: tokens(usage), answer, ok: completed && !error, error };

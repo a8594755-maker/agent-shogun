@@ -55,9 +55,15 @@ export async function status(root, name) {
       // An interrupted result is durable; never signal a PID read from disk.
       result = { provider: meta.provider, state: 'failed', error: 'interrupted', startedAt: meta.startedAt, endedAt: new Date().toISOString(), tokens: { total: 0 } };
       await writeJson(path.join(dir, 'result.json'), result);
+      await fs.appendFile(path.join(sessionDir(root, name), 'turns.jsonl'), JSON.stringify({ turn: meta.turn, ...result }) + '\n');
     }
   }
-  return { name, state: result?.state || 'running', error: result?.error, provider: meta.provider, model: meta.model, effort: meta.effort, access: meta.access, turn: meta.turn, seconds: Math.max(0, (Date.parse(result?.endedAt || new Date().toISOString()) - Date.parse(meta.startedAt)) / 1000), tokens: result?.tokens || null, sessionId: result?.sessionId || meta.sessionId || null, directory: meta.directory, ...await gitState(meta.directory), answer: path.join(dir, 'answer.txt'), ...(result?.details ? { details: result.details } : {}) };
+  let lastAnswer = null;
+  for (let turn = meta.turn; turn >= 1; turn--) {
+    const file = path.join(turnDir(root, name, turn), 'answer.txt');
+    if (await fs.access(file).then(() => true, () => false)) { lastAnswer = file; break; }
+  }
+  return { name, state: result?.state || 'running', error: result?.error, provider: meta.provider, model: meta.model, effort: meta.effort, access: meta.access, turn: meta.turn, seconds: Math.max(0, (Date.parse(result?.endedAt || new Date().toISOString()) - Date.parse(meta.startedAt)) / 1000), tokens: result?.tokens || null, sessionId: result?.sessionId || meta.sessionId || null, directory: meta.directory, ...await gitState(meta.directory), answer: lastAnswer, ...(result?.details ? { details: result.details } : {}) };
 }
 async function launch(root, meta, prompt, config, binary) {
   const dir = turnDir(root, meta.name, meta.turn);

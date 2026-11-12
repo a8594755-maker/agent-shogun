@@ -7,7 +7,7 @@ export function tokens(usage = {}) {
   const n = (...names) => { for (const name of names) if (Number.isFinite(usage[name])) return usage[name]; return 0; };
   const input = n('input_tokens', 'inputTokens', 'prompt_tokens', 'promptTokenCount');
   const output = n('output_tokens', 'outputTokens', 'completion_tokens', 'candidatesTokenCount');
-  const cacheRead = n('cache_read_input_tokens', 'cached_input_tokens', 'cachedContentTokenCount');
+  const cacheRead = n('cache_read_input_tokens', 'cached_input_tokens', 'cache_read_tokens', 'cachedContentTokenCount');
   const cacheWrite = n('cache_creation_input_tokens');
   // Codex's cached_input_tokens is already included in input_tokens; Claude caches are additional.
   const total = n('total_tokens', 'totalTokens', 'totalTokenCount') || input + output + (usage.cache_read_input_tokens || 0) + cacheWrite;

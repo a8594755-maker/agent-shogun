@@ -41,8 +41,12 @@ test('expired windows do not permanently exclude provider', () => {
 });
 test('research choice includes web request', () => assert.equal(pick(defaults, 'research', installed, readings(0, 0, 0)).selected.web, true));
 test('argument arrays preserve spaces, Unicode and shell metacharacters', () => {
-  const p = parseArgs(['send', 'one', '--message', 'a 日本語 & $(not-a-command)', '--json']);
-  assert.equal(p.options.message, 'a 日本語 & $(not-a-command)'); assert.equal(p.json, true);
+  const p = parseArgs(['send', 'one', '--message', 'a Ω & $(not-a-command)', '--json']);
+  assert.equal(p.options.message, 'a Ω & $(not-a-command)'); assert.equal(p.json, true);
+});
+test('leading JSON flag and option-like literal values are supported', () => {
+  const p = parseArgs(['--json', 'send', 'worker', '--message=--literal']);
+  assert.equal(p.json, true); assert.equal(p.options.message, '--literal');
 });
 test('parser rejects unknown options, missing values and duplicates', () => {
   for (const argv of [['start', 'a', '--wat'], ['send', 'a', '--message'], ['start', 'a', '--model', 'a', '--model', 'b']]) assert.throws(() => parseArgs(argv));
@@ -63,6 +67,11 @@ test('guards append inherited git configuration and override deploy env', () => 
 test('guards can be disabled independently', () => {
   const c = structuredClone(defaults); c.guards = { blockPush: false, env: {}, antigravityDeny: false };
   assert.deepEqual(childEnv(c, {}), {}); assert.deepEqual(agySettings(c, false, 'full').permissions.deny, []);
+});
+test('environment overrides can be disabled or remove one variable', () => {
+  const c = structuredClone(defaults); c.guards.blockPush = false; c.guards.env = false;
+  assert.deepEqual(childEnv(c, { EXAMPLE: 'preserved' }), { EXAMPLE: 'preserved' });
+  c.guards.env = { EXAMPLE: null }; assert.deepEqual(childEnv(c, { EXAMPLE: 'removed' }), {});
 });
 test('Antigravity guards persist in full mode and web opt-in removes only web denies', () => {
   const safe = agySettings(defaults, false, 'safe'), full = agySettings(defaults, true, 'full');
@@ -114,13 +123,24 @@ test('Codex reader handles missing source and nullable windows', async t => {
 });
 test('reverse reader handles chunk boundaries, UTF-8 and oversized lines', async t => {
   const dir = await temp(t), file = path.join(dir, 'rollout-large.jsonl');
-  await fs.writeFile(file, 'first 日本語\n' + 'x'.repeat(5000) + '\nlast é\n');
+  await fs.writeFile(file, 'first Ω\n' + 'x'.repeat(5000) + '\nlast é\n');
   const lines = []; for await (const line of reverseLines(file, 7, 100)) if (line) lines.push(line);
-  assert.deepEqual(lines, ['last é', 'first 日本語']);
+  assert.deepEqual(lines, ['last é', 'first Ω']);
 });
 test('binary discovery reports missing configured executable', async () => assert.equal(await findBinary('codex', path.join(os.tmpdir(), 'roster-not-installed.exe')), null));
 test('configuration merges nested defaults and rejects invalid usage', async t => {
   const dir = await temp(t); await fs.writeFile(path.join(dir, 'roster.config.json'), JSON.stringify({ usage: { ceiling: 80 } }));
   const c = await loadConfig(dir); assert.equal(c.usage.ceiling, 80); assert.equal(c.usage.suppliedMaxAgeMinutes, 30);
   await fs.writeFile(path.join(dir, 'roster.config.json'), JSON.stringify({ usage: { ceiling: 101 } })); await assert.rejects(loadConfig(dir));
+});
+test('Antigravity accepts real uppercase SUCCESS envelope and exposes usage', async t => {
+  const dir = await temp(t), file = path.join(dir, 'rollout-agy.jsonl');
+  await fs.writeFile(file, JSON.stringify({ conversation_id: 'fixture', status: 'SUCCESS', response: 'DONE\n', num_turns: 1, usage: { input_tokens: 105245, output_tokens: 610, cache_read_tokens: 8088, total_tokens: 105855 } }));
+  const parsed = await adapters.agy.parse(file);
+  assert.equal(parsed.ok, true); assert.equal(parsed.usage.total, 105855); assert.equal(parsed.usage.cacheRead, 8088);
+});
+test('Codex transient error is superseded by a successful completed turn', async t => {
+  const dir = await temp(t), file = path.join(dir, 'rollout-retry.jsonl');
+  await fs.writeFile(file, [{ type: 'thread.started', thread_id: 'fixture' }, { type: 'error', message: 'Reconnecting' }, { type: 'turn.completed', usage: { input_tokens: 1, output_tokens: 1 } }].map(JSON.stringify).join('\n'));
+  assert.equal((await adapters.codex.parse(file)).ok, true);
 });

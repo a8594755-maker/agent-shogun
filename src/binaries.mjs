@@ -11,7 +11,10 @@ async function commandFor(file) {
   if (/\.(cmd|bat|ps1)$/i.test(file)) {
     const wrapper = await fs.readFile(file, 'utf8');
     const matches = [...wrapper.matchAll(/(?:%dp0%|\$basedir)[\\/]([^"\r\n]+?\.(?:exe|[cm]?js))/g)];
+    // npm shims can mention node.exe before the actual JavaScript entry point.
+    matches.sort((a, b) => Number(/\.exe$/i.test(a[1])) - Number(/\.exe$/i.test(b[1])));
     for (const m of matches) {
+      if (/^node\.exe$/i.test(m[1])) continue;
       const target = path.resolve(path.dirname(file), m[1].replace(/[\\/]/g, path.sep));
       if (await executable(target)) return commandFor(target);
     }

@@ -30,10 +30,11 @@ const definitions = {
   send: { message: true }, status: {}, wait: { timeout: true }, answer: { turn: true }, stop: {}, review: { by: true, brief: true }
 };
 export function parseArgs(argv) {
-  const [command, ...rest] = argv;
+  const leadingJson = argv[0] === '--json';
+  const [command, ...rest] = leadingJson ? argv.slice(1) : argv;
   if (!command || ['--help', '-h', 'help'].includes(command)) return { command: 'help', json: argv.includes('--json'), positional: [], options: {}, sequence: [] };
   if (!definitions[command]) throw new Error(`Unknown command: ${command}`);
-  const options = {}, positional = [], sequence = []; let json = false;
+  const options = {}, positional = [], sequence = []; let json = leadingJson;
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i];
     if (arg === '--') { positional.push(...rest.slice(i + 1)); break; }
@@ -45,7 +46,7 @@ export function parseArgs(argv) {
     let value = true;
     if (needsValue) {
       value = equal < 0 ? rest[++i] : arg.slice(equal + 1);
-      if (value === undefined || value === '' || value.startsWith('--')) throw new Error(`--${key} needs a value (use --${key}=... for text beginning with --).`);
+      if (value === undefined || value === '' || equal < 0 && value.startsWith('--')) throw new Error(`--${key} needs a value (use --${key}=... for text beginning with --).`);
     } else if (equal >= 0) throw new Error(`--${key} does not take a value.`);
     if (key in options && !['window', 'used', 'resets'].includes(key)) throw new Error(`Duplicate --${key}`);
     options[key] = value; sequence.push([key, value]);

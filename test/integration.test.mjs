@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { exec, readJson, writeJson, sleep } from '../src/io.mjs';
 import { usage } from '../src/usage.mjs';
+import { childEnv } from '../src/guards.mjs';
 import { status, turnDir, alive } from '../src/sessions.mjs';
 import { scratch, cli } from './helpers.mjs';
 
@@ -44,10 +45,10 @@ test('init preserves existing config and adds ignore entry exactly once', async 
 });
 test('safe launch propagates guard values and preserves literal prompt characters', async t => {
   const s = await scratch(t);
-  await s.run('start', 'literal', '--provider', 'codex', '--brief', await s.brief('CAPTURE 日本語 & $(literal)'));
+  await s.run('start', 'literal', '--provider', 'codex', '--brief', await s.brief('CAPTURE Ω & $(literal)'));
   await s.run('wait', 'literal', '--timeout', '8s');
   const a = JSON.parse((await s.run('answer', 'literal')).answer);
-  assert.match(a.prompt, /日本語 & \$\(literal\)/); assert.equal(a.cwd, s.root); assert.equal(a.push, 'disabled://roster-do-not-push'); assert.equal(a.deploy, 'roster-deploy-disabled'); assert(a.args.includes('--approve-for-me'));
+  assert.match(a.prompt, /Ω & \$\(literal\)/); assert.equal(a.cwd, s.root); assert.equal(a.push, 'disabled://roster-do-not-push'); assert.equal(a.deploy, 'roster-deploy-disabled'); assert(a.args.includes('--approve-for-me'));
 });
 test('full mode remains guarded for each provider', async t => {
   const s = await scratch(t);
@@ -75,6 +76,8 @@ test('interrupted supervisor is recognized after launcher process exits', async 
   await writeJson(path.join(s.root, '.roster', 'sessions', 'interrupted', 'meta.json'), { name: 'interrupted', provider: 'codex', model: 'fake', turn: 1, directory: s.root, startedAt: new Date(Date.now() - 100000).toISOString() });
   await writeJson(path.join(dir, 'running.json'), { pid: 2147483647, launchedAt: new Date(Date.now() - 100000).toISOString() });
   const state = await s.run('status', 'interrupted'); assert.equal(state.state, 'failed'); assert.equal(state.error, 'interrupted');
+  const lines = (await fs.readFile(path.join(s.root, '.roster', 'sessions', 'interrupted', 'turns.jsonl'), 'utf8')).trim().split('\n');
+  assert.equal(lines.length, 1); assert.equal(JSON.parse(lines[0]).error, 'interrupted');
 });
 test('manual readings support repeated windows, age and stale display', async t => {
   const s = await scratch(t);
@@ -97,7 +100,7 @@ test('malformed provider output fails rather than reporting done', async t => {
   assert.match((await s.fail('wait', 'bad', '--timeout', '8s')).sessions[0].error, /Invalid provider output/);
 });
 test('worktree creation is idempotent and validates branch identity', async t => {
-  const s = await scratch(t), worktree = path.join(s.parent, 'worker 日本語');
+  const s = await scratch(t), worktree = path.join(s.parent, 'worker Ω');
   const brief = await s.brief('Create hello.txt');
   await s.run('start', 'one', '--provider', 'codex', '--brief', brief, '--worktree', worktree, '--branch', 'worker', '--base', 'main');
   await s.run('wait', 'one', '--timeout', '8s');
@@ -125,4 +128,53 @@ test('all command errors produce JSON and unknown names cannot traverse', async 
 test('human output is a table and answer is plain text', async t => {
   const s = await scratch(t);
   const p = await exec(process.execPath, [cli, 'providers'], { cwd: s.root, env: s.env }); assert.match(p.stdout, /provider\s+installed\s+version/);
+});
+test('guarded origin push fails locally before reaching its configured destination', async t => {
+  const s = await scratch(t);
+  await exec('git', ['-C', s.root, 'remote', 'add', 'origin', path.join(s.parent, 'no-remote')]);
+  await assert.rejects(exec('git', ['-C', s.root, 'push', 'origin', 'HEAD'], { env: childEnv(s.config), windowsHide: true }), /disabled|remote helper|protocol/i);
+});
+test('a reboot or reused live PID cannot make an old turn look running', async t => {
+  const s = await scratch(t), dir = turnDir(s.root, 'reboot', 1);
+  await writeJson(path.join(s.root, '.roster', 'sessions', 'reboot', 'meta.json'), { name: 'reboot', provider: 'codex', model: 'fake', turn: 1, directory: s.root, startedAt: '1970-01-01T00:00:00Z' });
+  await writeJson(path.join(dir, 'running.json'), { pid: process.pid, launchedAt: new Date().toISOString() });
+  await writeJson(path.join(dir, 'heartbeat.json'), { at: new Date().toISOString() });
+  assert.equal((await s.run('status', 'reboot')).error, 'interrupted'); assert.equal(alive(process.pid), true);
+});
+test('stale individual supplied windows remain stale when a different window is updated', async t => {
+  const s = await scratch(t), file = path.join(s.root, '.roster', 'usage', 'claude.supplied.json');
+  await writeJson(file, { source: 'supplied', readAt: '2000-01-01T00:00:00Z', windows: [{ label: 'weekly', usedPercent: 85, resetsAt: '2099-01-01T00:00:00Z', readAt: '2000-01-01T00:00:00Z' }] });
+  await s.run('usage', 'set', 'claude', '--window', 'weekly:model-x', '--used', '20', '--resets', '2099-01-01T00:00:00Z');
+  const r = (await s.run('usage')).find(r => r.provider === 'claude');
+  assert.equal(r.windows.find(w => w.label === 'weekly').stale, true); assert.equal(r.windows.find(w => w.label === 'weekly:model-x').stale, false);
+});
+test('later successful turn clears a learned limit and gauges include local turns', async t => {
+  const s = await scratch(t);
+  await s.run('start', 'quota', '--provider', 'agy', '--brief', await s.brief('LIMIT'));
+  await s.fail('wait', 'quota', '--timeout', '8s');
+  await s.run('send', 'quota', '--message', 'Explain the file.'); await s.run('wait', 'quota', '--timeout', '8s');
+  const r = (await s.run('usage')).find(r => r.provider === 'agy'); assert.equal(r.limited, false); assert.equal(r.tokenGauge.last5Hours, 30); assert.equal(r.tokenGauge.last7Days, 30);
+});
+test('status keeps the previous answer visible while a follow-up is running', async t => {
+  const s = await scratch(t);
+  await s.run('start', 'worker', '--provider', 'codex', '--brief', await s.brief('Create a file.'));
+  await s.run('wait', 'worker', '--timeout', '8s');
+  await s.run('send', 'worker', '--message', 'SLOW');
+  const r = await s.run('status', 'worker'); assert.equal(r.state, 'running'); assert.match(r.answer, /turn-0001/);
+  await s.run('stop', 'worker'); await s.fail('wait', 'worker', '--timeout', '8s');
+});
+test('an actually terminated supervisor becomes failed interrupted', async t => {
+  const s = await scratch(t);
+  await s.run('start', 'crash', '--provider', 'codex', '--brief', await s.brief('SLOW'));
+  const running = await readJson(path.join(turnDir(s.root, 'crash', 1), 'running.json'));
+  let fakePid;
+  for (let i = 0; i < 100; i++) {
+    fakePid = await fs.readFile(path.join(s.root, 'ready.txt'), 'utf8').then(Number, () => null);
+    if (fakePid) break; await sleep(20);
+  }
+  assert(fakePid);
+  if (process.platform === 'win32') await exec('taskkill.exe', ['/PID', String(running.pid), '/T', '/F'], { windowsHide: true });
+  else { process.kill(running.pid, 'SIGKILL'); try { process.kill(-fakePid, 'SIGKILL'); } catch (e) { if (e.code !== 'ESRCH') throw e; } }
+  for (let i = 0; i < 100 && alive(running.pid); i++) await sleep(20);
+  assert.equal((await s.run('status', 'crash')).error, 'interrupted');
 });

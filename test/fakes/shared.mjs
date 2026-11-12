@@ -19,7 +19,7 @@ export async function fake(provider) {
       const descendant = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 5000)'], { stdio: 'ignore' });
       fs.writeFileSync('descendant.pid', String(descendant.pid));
     }
-    fs.writeFileSync('ready.txt', 'ready');
+    fs.writeFileSync('ready.txt', String(process.pid));
     await new Promise(r => setTimeout(r, 3000));
   }
   if (prompt.includes('MALFORMED')) { console.log('not json'); return; }
@@ -32,7 +32,7 @@ export async function fake(provider) {
     console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: answer } }));
     console.log(JSON.stringify(limited ? { type: 'turn.failed', error: { message: answer } } : { type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 3, output_tokens: 5 } }));
   } else if (provider === 'agy') {
-    console.log(JSON.stringify({ conversation_id: id, status: limited ? 'error' : 'success', response: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5 }, denied_actions: [] }));
+    console.log(JSON.stringify({ conversation_id: id, status: limited ? 'ERROR' : 'SUCCESS', response: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5 }, denied_actions: [] }));
   } else {
     console.log(JSON.stringify({ type: 'result', session_id: id, subtype: limited ? 'error_during_execution' : 'success', is_error: limited, result: answer, num_turns: 1, usage: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 2 }, permission_denials: [] }));
   }
