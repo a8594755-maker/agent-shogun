@@ -1,0 +1,810 @@
+{
+  "verifiedAt": "2026-11-12",
+  "verifiedBy": "initial, from the CLIs' own model lists; capability and allocation not yet verified online",
+  "providers": {
+    "claude": {
+      "cli": "claude",
+      "signIn": "claude auth login",
+      "usageCommand": "roster usage; without roster: optional status-line cache or manual dashboard reading",
+      "plans": [
+        {
+          "name": "Subscription; tier not confirmed",
+          "windows": [
+            "5-hour",
+            "weekly"
+          ],
+          "notes": "Status-line windows are documented; no hook installed here. Per-model weekly limits require a manual reading."
+        }
+      ],
+      "models": [
+        {
+          "id": "claude-fable-5-2",
+          "group": null,
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: general coding"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-opus-5-5",
+          "group": null,
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: hard design/review"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "group": null,
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: UI/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-haiku-5-5",
+          "group": null,
+          "released": null,
+          "tier": "fast",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: cheap bulk/tests"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        }
+      ]
+    },
+    "codex": {
+      "cli": "codex",
+      "signIn": "codex login",
+      "usageCommand": "roster usage; without roster: session-log rate_limits, or app-server account/rateLimits/read",
+      "plans": [
+        {
+          "name": "Locally observed weekly-only subscription",
+          "windows": [
+            "weekly"
+          ],
+          "notes": "This PC reports only a weekly window; other subscription plans can have both 5-hour and weekly. Exact per-model allowance cost is not confirmed."
+        }
+      ],
+      "models": [
+        {
+          "id": "gpt-6.1-sol",
+          "group": null,
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: server/tests"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gpt-6-astra",
+          "group": null,
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: design/debugging"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        }
+      ]
+    },
+    "agy": {
+      "cli": "agy",
+      "signIn": "agy",
+      "usageCommand": "agy --print /usage --output-format json (direct binary; remaining fractions, two separate groups)",
+      "plans": [
+        {
+          "name": "Subscription; tier not reported",
+          "windows": [
+            "5-hour",
+            "weekly"
+          ],
+          "notes": "Each group has independent windows: Gemini Models and Claude and GPT models. Remaining fractions are converted to percent used."
+        }
+      ],
+      "models": [
+        {
+          "id": "gemini-4-carbon-low",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-4-carbon-medium",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-4-carbon-high",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-4-argon-low",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-4-argon-medium",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-4-argon-high",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-3.8-flash-low",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "fast",
+          "contextWindow": 0,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-3.8-flash-medium",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "fast",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-3.8-flash-high",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "fast",
+          "contextWindow": 0,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/implementation"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-opus-5-5-low",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-opus-5-5-medium",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-opus-5-5-high",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-sonnet-5-5-low",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-sonnet-5-5-medium",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "claude-sonnet-5-5-high",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: review/UI"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gpt-oss-120b-medium",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: general coding"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "gemini-pro-orchestrator",
+          "group": "Gemini Models",
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: research/planning"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        }
+      ]
+    },
+    "grok": {
+      "cli": "grok",
+      "signIn": "grok login",
+      "usageCommand": null,
+      "plans": [
+        {
+          "name": "grok.com subscription; allowance unknown",
+          "windows": [],
+          "notes": "No headless plan-allowance command. grok usage and turn envelopes report local spend, not remaining plan allowance. Never send -p /usage."
+        }
+      ],
+      "models": [
+        {
+          "id": "grok-4.7",
+          "group": null,
+          "released": null,
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: general coding"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "grok-4.7-build-fast",
+          "group": null,
+          "released": null,
+          "tier": "fast",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: cheap coding/tests"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "grok-4.6",
+          "group": null,
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: general coding"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        },
+        {
+          "id": "grok-4.5",
+          "group": null,
+          "released": null,
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Provisional: general coding"
+          ],
+          "weakAt": [
+            "Not independently evaluated"
+          ],
+          "evidence": [
+            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+          ]
+        }
+      ]
+    }
+  },
+  "allocation": {
+    "hardest": [
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "grok",
+        "model": "grok-4.7",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "ui": [
+      {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "medium",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "agy",
+        "model": "claude-sonnet-5-5-low",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "medium",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "server": [
+      {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "medium",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "grok",
+        "model": "grok-4.7-build-fast",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "tests": [
+      {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "grok",
+        "model": "grok-4.7-build-fast",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-haiku-5-5",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "review": [
+      {
+        "provider": "agy",
+        "model": "gemini-4-carbon-high",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "agy",
+        "model": "claude-opus-5-5-low",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "security": [
+      {
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "grok",
+        "model": "grok-4.7",
+        "effort": "high",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "research": [
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "grok",
+        "model": "grok-4.7-build-fast",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "medium",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ],
+    "bulk": [
+      {
+        "provider": "grok",
+        "model": "grok-4.7-build-fast",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-haiku-5-5",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-low",
+        "effort": "low",
+        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+      }
+    ]
+  },
+  "changesSinceLastCheck": [
+    "Initial portable catalog; online capability/allocation verification pending.",
+    "Added Grok Build and the two independent Antigravity allowance groups."
+  ],
+  "notConfirmed": [
+    "All capability tiers, bestFor suggestions, relative allowance costs, and allocation are provisional, not online-verified.",
+    "Release dates are unknown (null); context windows are unknown (0); relativeAllowanceCost=1 is a neutral placeholder.",
+    "Claude and Codex IDs include the owner-supplied CLI inventory; these CLIs expose no simple model-list command in the checked help.",
+    "Per-model effort acceptance and plan differences must be verified; advertised CLI effort levels do not prove every model accepts them.",
+    "Native Claude status-line cache is not installed; plan allowances for Grok are unknown.",
+    "Grok built-in sandbox enforcement on Windows is not confirmed; the guide documents Linux/macOS."
+  ]
+}

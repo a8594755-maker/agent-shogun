@@ -17,6 +17,7 @@ export function validateCatalog(c) {
     if (!p || !string(p.cli) || !string(p.signIn) || p.usageCommand !== null && !string(p.usageCommand)) fail(`missing CLI/sign-in/usage metadata for ${name}.`);
     if (!Array.isArray(p.plans) || !p.plans.every(plan => string(plan.name) && strings(plan.windows) && typeof plan.notes === 'string')) fail(`invalid plans for ${name}.`);
     if (!Array.isArray(p.models) || !p.models.length) fail(`no models for ${name}.`);
+    if (p.excludedModels !== undefined && (!Array.isArray(p.excludedModels) || !p.excludedModels.every(m=>string(m.id)&&string(m.reason)))) fail(`invalid excluded-model records for ${name}.`);
     const ids = new Set();
     for (const m of p.models) {
       if (!string(m.id) || ids.has(m.id)) fail(`duplicate/empty model id for ${name}.`); ids.add(m.id);
@@ -98,7 +99,8 @@ export function modelDrift(catalog, providers) {
   return new Map(providers.map(p => {
     const expected = new Set(catalog.providers[p.provider]?.models.map(m => m.id) || []);
     if (!p.installed || p.authState !== 'signed in' || !p.modelsListed || !p.models.length) return [p.provider, []];
-    const actual = new Set(p.models), added = p.models.filter(m => !expected.has(m)), missing = [...expected].filter(m => !actual.has(m));
+    const excluded = new Set(catalog.providers[p.provider]?.excludedModels?.map(m=>m.id) || []);
+    const actual = new Set(p.models), added = p.models.filter(m => !expected.has(m) && !excluded.has(m)), missing = [...expected].filter(m => !actual.has(m));
     return [p.provider, [...(added.length ? [`Catalog stale: ${p.provider} CLI lists uncatalogued models: ${added.join(', ')}.`] : []), ...(missing.length ? [`Catalog stale: ${p.provider} CLI no longer lists: ${missing.join(', ')}.`] : [])]];
   }));
 }

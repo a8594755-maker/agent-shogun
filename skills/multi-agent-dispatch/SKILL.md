@@ -5,54 +5,55 @@ description: Dispatch coding work across provider CLIs using a portable model ca
 
 # Multi-agent dispatch
 
-**Catalog: last verified 2026-11-12 by initial, from the CLIs' own model lists; capability and allocation not yet verified online**
+**Catalog: last verified 2026-11-12 by research: Gemini 4 Carbon; fact-check of the allocation-relevant claims: Grok 4.7; model ids checked against the installed CLIs**
 Next check: 2026-11-27 (verified + 15 days).
 
 Before you dispatch anything, compare today's date with the date above. If the catalog is more than 15 days old, or the user asks you to re-check, do the model check first: follow [references/model-check-brief.md](references/model-check-brief.md), handing web research to the eligible provider with the most allowance left.
 Verify every model ID against an installed CLI list or an opened vendor page; open the pages behind any claim that changes allocation. Include the previous catalog and report what changed.
 Update [references/model-catalog.json](references/model-catalog.json), then run `roster catalog set <file.json>`. Without roster, edit the JSON and marked tables by hand, including the date/by line and next-check date (verified + 15 days). Tell the user in a few lines what changed.
 If you cannot check now (no web access or allowance), say so and continue with the old catalog, stating its age. If a CLI rejects a model ID or lists an ID absent here, treat the catalog as stale immediately.
-Initial `?` tiers, best-for suggestions and allocation are provisional. Context size 0, release null and allowance cost 1 mean not confirmed; they are not measured capacity or cost claims. Consult the JSON's evidence and notConfirmed fields.
+Unknown tiers are null, context size 0 and release null mean unconfirmed. Read each costBasis: relativeAllowanceCost can be an API-price proxy or a neutral placeholder, not a measured subscription multiplier. Consult the JSON's evidence and notConfirmed fields; native Claude calls were intentionally not probed.
 
 <!-- catalog:start -->
 | Provider | Model / callable ID pattern | Efforts | Tier | Best for | Allowance group |
 | --- | --- | --- | --- | --- | --- |
-| claude | `claude-fable-5-2` | low / medium / high | strong? | Provisional: general coding | provider pool |
-| claude | `claude-opus-5-5` | low / medium / high | frontier? | Provisional: hard design/review | provider pool |
-| claude | `claude-sonnet-5-5` | low / medium / high | strong? | Provisional: UI/implementation | provider pool |
-| claude | `claude-haiku-5-5` | low / medium / high | fast? | Provisional: cheap bulk/tests | provider pool |
-| codex | `gpt-6.1-sol` | low / medium / high | strong? | Provisional: server/tests | provider pool |
-| codex | `gpt-6-astra` | low / medium / high | frontier? | Provisional: design/debugging | provider pool |
-| agy | `gemini-4-carbon-<effort>` | low / medium / high | strong? | Provisional: research/implementation | Gemini Models |
-| agy | `gemini-4-argon-<effort>` | low / medium / high | strong? | Provisional: research/implementation | Gemini Models |
-| agy | `gemini-3.8-flash-<effort>` | low / medium / high | fast? | Provisional: research/implementation | Gemini Models |
-| agy | `claude-opus-5-5-<effort>` | low / medium / high | frontier? | Provisional: review/UI | Claude and GPT models |
-| agy | `claude-sonnet-5-5-<effort>` | low / medium / high | strong? | Provisional: review/UI | Claude and GPT models |
-| agy | `gpt-oss-120b-<effort>` | medium | strong? | Provisional: general coding | Claude and GPT models |
-| agy | `gemini-pro-orchestrator` | low / medium / high | strong? | Provisional: research/planning | Gemini Models |
-| grok | `grok-4.7` | low / medium / high / xhigh | frontier? | Provisional: general coding | provider pool |
-| grok | `grok-4.7-build-fast` | low / medium / high / xhigh | fast? | Provisional: cheap coding/tests | provider pool |
-| grok | `grok-4.6` | low / medium / high / xhigh | strong? | Provisional: general coding | provider pool |
-| grok | `grok-4.5` | low / medium / high / xhigh | strong? | Provisional: general coding | provider pool |
+| claude | `claude-fable-5-2` | low / medium / high / xhigh / max | frontier | Hard design and long-horizon reasoning; Highest observed WebDev rank; reserve weekly Fable capacity | provider pool |
+| claude | `claude-opus-5-5` | low / medium / high / xhigh / max | frontier | Second observed WebDev rank; lower list price than Fable; Cross-layer implementation and review | provider pool |
+| claude | `claude-sonnet-5-5` | low / medium / high / xhigh / max | strong | Everyday implementation; Lower-cost UI and terminal work | provider pool |
+| claude | `claude-haiku-5-5` | low / medium / high / xhigh / max | fast | cheap bulk edits; high-volume classification and subagent routing | provider pool |
+| codex | `gpt-6-astra` | low / medium / high / xhigh / max | frontier | ambiguous multi-file backend architecture; high-end full-stack synthesis | provider pool |
+| codex | `gpt-6.1-sol` | low / medium / high / xhigh / max | strong | server and backend implementation to a written spec; independent review and reproduction tests | provider pool |
+| codex | `gpt-6.1-terra` | low / medium / high / xhigh / max | fast | routine test additions; mechanical refactors | provider pool |
+| codex | `gpt-6-luna` | low / medium / high | fast | cheap bulk transforms; linting, string extraction, mechanical cleanup | provider pool |
+| agy | `gemini-4-carbon-<effort>` | low / medium / high | frontier | Independent code/security review; Deep reasoning and grounded research | Gemini Models |
+| agy | `gemini-4-argon-<effort>` | low / medium / high | strong | bounded backend and CLI implementation; secondary security/patch checks | Gemini Models |
+| agy | `gemini-3.8-flash-<effort>` | low / medium / high | fast | Fast lookups and bounded edits; Low-latency mechanical work | Gemini Models |
+| agy | `claude-opus-5-5-<effort>` | low / medium / high | frontier | Overflow implementation/review in separate third-party pool | Claude and GPT models |
+| agy | `claude-sonnet-5-5-<effort>` | low / medium / high | strong | Overflow implementation/review in separate third-party pool | Claude and GPT models |
+| agy | `gemini-4-hydrogen-<effort>` | low / medium / high / xhigh | unknown | Vendor positions rapid everyday execution; allocation pending | Gemini Models |
+| grok | `grok-4.7` | low / medium / high / xhigh | frontier | Live web/X research; Cross-family review and implementation | provider pool |
+| grok | `grok-4.7-build-fast` | low / medium / high / xhigh | frontier | Low-latency Grok coding on paid Build access | provider pool |
+| grok | `grok-4.6` | low / medium / high / xhigh | strong | Legacy/secondary tasks when locally offered | provider pool |
+| grok | `grok-4.5` | low / medium / high | strong | Legacy/secondary tasks when locally offered | provider pool |
 
 **How to read what is left**
 | Provider | Command or source | Windows |
 | --- | --- | --- |
-| claude | roster usage; without roster: optional status-line cache or manual dashboard reading | 5-hour / weekly |
-| codex | roster usage; without roster: session-log rate_limits, or app-server account/rateLimits/read | weekly |
-| agy | agy --print /usage --output-format json (direct binary; remaining fractions, two separate groups) | 5-hour / weekly |
-| grok | Unknown; local token/cost gauge | unknown |
+| claude | Status-line rate_limits cache, or supplied dashboard reading (per-model weekly: manual) | 5-hour / weekly / weekly:Fable |
+| codex | Session-log rate_limits; stale/missing: app-server account/rateLimits/read | 5-hour / weekly |
+| agy | agy --print /usage --output-format json (direct spawn; no model call) | weekly / 5-hour |
+| grok | Unknown; local token/cost gauge | weekly |
 
 | Work | First choice | Second choice |
 | --- | --- | --- |
-| hardest | `codex/gpt-6-astra` (high) | `claude/claude-opus-5-5` (high) |
-| ui | `claude/claude-sonnet-5-5` (medium) | `agy/claude-sonnet-5-5-low` (low) |
-| server | `codex/gpt-6.1-sol` (medium) | `grok/grok-4.7-build-fast` (low) |
-| tests | `codex/gpt-6.1-sol` (low) | `grok/grok-4.7-build-fast` (low) |
-| review | `agy/gemini-4-carbon-high` (high) | `codex/gpt-6-astra` (high) |
-| security | `codex/gpt-6-astra` (high) | `claude/claude-opus-5-5` (high) |
-| research | `agy/gemini-3.8-flash-low` (low) | `grok/grok-4.7-build-fast` (low) |
-| bulk | `grok/grok-4.7-build-fast` (low) | `claude/claude-haiku-5-5` (low) |
+| hardest | `claude/claude-fable-5-2` (high) | `agy/gemini-4-carbon-high` (high) |
+| ui | `claude/claude-fable-5-2` (high) | `claude/claude-opus-5-5` (high) |
+| server | `codex/gpt-6.1-sol` (high) | `claude/claude-sonnet-5-5` (high) |
+| tests | `codex/gpt-6.1-terra` (medium) | `agy/gemini-3.8-flash-medium` (medium) |
+| review | `agy/gemini-4-carbon-high` (high) | `codex/gpt-6.1-sol` (xhigh) |
+| security | `agy/gemini-4-carbon-high` (high) | `codex/gpt-6.1-sol` (xhigh) |
+| research | `agy/gemini-4-carbon-high` (high) | `grok/grok-4.7` (high) |
+| bulk | `codex/gpt-6-luna` (low) | `claude/claude-haiku-5-5` (low) |
 <!-- catalog:end -->
 
 ## Run with or without roster

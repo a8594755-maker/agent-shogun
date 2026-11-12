@@ -60,7 +60,7 @@ Return the updated JSON with this schema (retain all four providers):
 ```
 
 Use provider keys `codex`, `claude`, `agy`, `grok`; tiers `frontier`, `strong`,
-`fast`; and work keys `hardest`, `ui`, `server`, `tests`, `review`, `security`,
+`fast` or null when unconfirmed; and work keys `hardest`, `ui`, `server`, `tests`, `review`, `security`,
 `research`, `bulk`. Antigravity group names are `Gemini Models` and `Claude and
 GPT models`. Unknown release is null; context size 0 means not confirmed; cost 1
 is only a neutral placeholder until verified. Evidence should include URLs,

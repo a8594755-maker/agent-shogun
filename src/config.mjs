@@ -5,7 +5,7 @@ import { readJson } from './io.mjs';
 export const providerNames = ['codex', 'agy', 'claude', 'grok'];
 export const defaults = {
   providers: {
-    codex: { model: 'gpt-6-astra', effort: 'low' },
+    codex: { model: 'gpt-6.1-sol', effort: 'low' },
     agy: { model: 'gemini-3.8-flash-low', effort: 'low' },
     claude: { model: 'claude-sonnet-5-5', effort: 'medium' },
     grok: { model: 'grok-4.7-build-fast', effort: 'low' }

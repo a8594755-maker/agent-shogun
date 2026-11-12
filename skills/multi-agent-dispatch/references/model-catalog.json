@@ -1,549 +1,1053 @@
 {
   "verifiedAt": "2026-11-12",
-  "verifiedBy": "initial, from the CLIs' own model lists; capability and allocation not yet verified online",
   "providers": {
     "claude": {
       "cli": "claude",
-      "signIn": "claude auth login",
-      "usageCommand": "roster usage; without roster: optional status-line cache or manual dashboard reading",
       "plans": [
         {
-          "name": "Subscription; tier not confirmed",
+          "name": "Pro",
           "windows": [
             "5-hour",
             "weekly"
           ],
-          "notes": "Status-line windows are documented; no hook installed here. Per-model weekly limits require a manual reading."
+          "notes": "Fable normally uses paid usage credits. Eligible launch offer through 2026-11-16 11:59 pm PT includes Fable up to 50% of weekly allowance. Sources: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan ; https://support.claude.com/en/articles/17506494-claude-fable-5-2-launch-offers"
+        },
+        {
+          "name": "Max",
+          "windows": [
+            "5-hour",
+            "weekly",
+            "weekly:Fable"
+          ],
+          "notes": "Included Fable spending is capped at 50% within the ordinary weekly pool, not 50% extra. Exact model burn multipliers are not published. https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+        },
+        {
+          "name": "Ultra, verified",
+          "windows": [
+            "weekly",
+            "weekly:Fable"
+          ],
+          "notes": "No 5-hour session limit for verified accounts; unverified accounts can retain a temporary 5-hour limit. Fable remains inside the 50% weekly cap. https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-max-or-ultra-plan"
         }
       ],
       "models": [
         {
           "id": "claude-fable-5-2",
           "group": null,
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "released": "2026-11-09",
+          "tier": "frontier",
+          "contextWindow": 1000000,
           "efforts": [
             "low",
             "medium",
-            "high"
+            "high",
+            "xhigh",
+            "max"
           ],
-          "relativeAllowanceCost": 1,
+          "relativeAllowanceCost": 4,
           "bestFor": [
-            "Provisional: general coding"
+            "Hard design and long-horizon reasoning",
+            "Highest observed WebDev rank; reserve weekly Fable capacity"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Uses plan limits faster; included Fable spending capped at 50% of weekly allowance on eligible plans",
+            "User reports security-review refusals; anecdotal, not a measured refusal rate"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://www.anthropic.com/news/claude-fable-5-2-and-claude-mythos-5-2",
+            "https://artificialanalysis.ai",
+            "https://benchlm.ai",
+            "https://livebench.ai",
+            "https://metr.org",
+            "https://platform.claude.com/docs/en/about-claude/pricing",
+            "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+            "https://support.claude.com/en/articles/17506494-claude-fable-5-2-launch-offers",
+            "https://arena.ai/leaderboard/code/webdev",
+            "Documented model ID; native Claude inference intentionally not probed locally on 2026-11-12",
+            "https://www.reddit.com/r/ClaudeCode/comments/1x0d2e4/how_does_everyone_review_the_security_of_their/"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 8,
+            "output": 40
+          },
+          "minimumDocumentedCliVersion": "2.1.321",
+          "costBasis": "Standard API-price ratio to Sonnet, not a verified subscription burn multiplier",
+          "benchmarks": [
+            {
+              "name": "WebDev Overall",
+              "rank": 1,
+              "score": 1838,
+              "effort": "xhigh",
+              "date": "2026-11-11",
+              "url": "https://arena.ai/leaderboard/code/webdev",
+              "notes": "Opened leaderboard snapshot; preference evidence, not a guarantee on a project"
+            }
           ]
         },
         {
           "id": "claude-opus-5-5",
           "group": null,
-          "released": null,
+          "released": "2026-09-22",
           "tier": "frontier",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "low",
             "medium",
-            "high"
+            "high",
+            "xhigh",
+            "max"
           ],
-          "relativeAllowanceCost": 1,
+          "relativeAllowanceCost": 2,
           "bestFor": [
-            "Provisional: hard design/review"
+            "Second observed WebDev rank; lower list price than Fable",
+            "Cross-layer implementation and review"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "User reports security-review refusals; anecdotal, not a universal behavior claim"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://www.anthropic.com/news/claude-opus-5-5",
+            "https://lmarena.ai",
+            "https://www.swebench.com",
+            "https://www.tbench.ai",
+            "https://platform.claude.com/docs/en/about-claude/pricing",
+            "Documented model ID; native Claude inference intentionally not probed locally on 2026-11-12",
+            "https://www.reddit.com/r/ClaudeCode/comments/1x0d2e4/how_does_everyone_review_the_security_of_their/"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 4,
+            "output": 20
+          },
+          "costBasis": "Standard API-price ratio to Sonnet, not a verified subscription burn multiplier",
+          "benchmarks": [
+            {
+              "name": "WebDev Overall",
+              "rank": 2,
+              "score": 1815,
+              "effort": "max",
+              "date": "2026-11-11",
+              "url": "https://arena.ai/leaderboard/code/webdev",
+              "notes": "Opened leaderboard snapshot; preference evidence, not a guarantee on a project"
+            }
           ]
         },
         {
           "id": "claude-sonnet-5-5",
           "group": null,
-          "released": null,
+          "released": "2026-09-28",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "low",
             "medium",
-            "high"
+            "high",
+            "xhigh",
+            "max"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: UI/implementation"
+            "Everyday implementation",
+            "Lower-cost UI and terminal work"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "ambiguous cross-system architecture compared with Opus and Fable"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://www.anthropic.com/news/claude-sonnet-5-5",
+            "https://lmarena.ai",
+            "https://www.tbench.ai",
+            "https://platform.claude.com/docs/en/about-claude/pricing",
+            "Documented model ID; native Claude inference intentionally not probed locally on 2026-11-12"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10
+          },
+          "costBasis": "Standard API-price ratio to Sonnet, not a verified subscription burn multiplier",
+          "benchmarks": [
+            {
+              "name": "WebDev Overall",
+              "rank": 3,
+              "score": 1772,
+              "effort": "xhigh",
+              "date": "2026-11-11",
+              "url": "https://arena.ai/leaderboard/code/webdev",
+              "notes": "Opened leaderboard snapshot; preference evidence, not a guarantee on a project"
+            }
           ]
         },
         {
           "id": "claude-haiku-5-5",
           "group": null,
-          "released": null,
+          "released": "2026-10-07",
           "tier": "fast",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "low",
             "medium",
-            "high"
+            "high",
+            "xhigh",
+            "max"
           ],
-          "relativeAllowanceCost": 1,
+          "relativeAllowanceCost": 0.05,
           "bestFor": [
-            "Provisional: cheap bulk/tests"
+            "cheap bulk edits",
+            "high-volume classification and subagent routing"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "complex multi-file debugging",
+            "hard terminal workflows (39.2% Terminal-Bench 4.0)"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://www.anthropic.com/news/claude-haiku-5-5",
+            "https://claude.com/pricing",
+            "https://platform.claude.com/docs/en/about-claude/pricing",
+            "Documented model ID; native Claude inference intentionally not probed locally on 2026-11-12"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 0.1,
+            "output": 0.5,
+            "longInputThreshold": 100000,
+            "longInput": 0.5,
+            "longOutput": 2.5
+          },
+          "costBasis": "Standard API-price ratio to Sonnet, not a verified subscription burn multiplier"
         }
-      ]
+      ],
+      "signIn": "claude auth login",
+      "usageCommand": "Status-line rate_limits cache, or supplied dashboard reading (per-model weekly: manual)",
+      "observedCliVersion": "2.1.296"
     },
     "codex": {
       "cli": "codex",
-      "signIn": "codex login",
-      "usageCommand": "roster usage; without roster: session-log rate_limits, or app-server account/rateLimits/read",
       "plans": [
         {
-          "name": "Locally observed weekly-only subscription",
-          "windows": [
-            "weekly"
-          ],
-          "notes": "This PC reports only a weekly window; other subscription plans can have both 5-hour and weekly. Exact per-model allowance cost is not confirmed."
-        }
-      ],
-      "models": [
-        {
-          "id": "gpt-6.1-sol",
-          "group": null,
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
-          "efforts": [
-            "low",
-            "medium",
-            "high"
-          ],
-          "relativeAllowanceCost": 1,
-          "bestFor": [
-            "Provisional: server/tests"
-          ],
-          "weakAt": [
-            "Not independently evaluated"
-          ],
-          "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
-        },
-        {
-          "id": "gpt-6-astra",
-          "group": null,
-          "released": null,
-          "tier": "frontier",
-          "contextWindow": 0,
-          "efforts": [
-            "low",
-            "medium",
-            "high"
-          ],
-          "relativeAllowanceCost": 1,
-          "bestFor": [
-            "Provisional: design/debugging"
-          ],
-          "weakAt": [
-            "Not independently evaluated"
-          ],
-          "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
-        }
-      ]
-    },
-    "agy": {
-      "cli": "agy",
-      "signIn": "agy",
-      "usageCommand": "agy --print /usage --output-format json (direct binary; remaining fractions, two separate groups)",
-      "plans": [
-        {
-          "name": "Subscription; tier not reported",
+          "name": "Plus",
           "windows": [
             "5-hour",
             "weekly"
           ],
-          "notes": "Each group has independent windows: Gemini Models and Claude and GPT models. Remaining fractions are converted to percent used."
+          "notes": "Both limits can apply. The guide also lists GPT-6 Sol; the four focused Work/Codex models are not an exhaustive plan picker. https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+        },
+        {
+          "name": "Pro 100 / Pro 200 / Pro 500",
+          "windows": [
+            "weekly"
+          ],
+          "notes": "No five-hour Work/Codex limit. On Oct 29 Pro 100 and 500 were doubled; Pro 200 accounts already at the higher allowance kept it, lower Pro 200 accounts were raised to it. Defaults/Power presets can show Terra on some plans. Fast burns faster; Astra/Sol Ultrafast is Pro 500 only at 8x standard included usage. https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
         }
       ],
       "models": [
         {
-          "id": "gemini-4-carbon-low",
-          "group": "Gemini Models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "id": "gpt-6-astra",
+          "group": null,
+          "released": "2026-09-03",
+          "tier": "frontier",
+          "contextWindow": 1050000,
           "efforts": [
-            "low"
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "relativeAllowanceCost": 5,
+          "bestFor": [
+            "ambiguous multi-file backend architecture",
+            "high-end full-stack synthesis"
+          ],
+          "weakAt": [
+            "About five times Sol standard API price; reserve for demanding tasks"
+          ],
+          "evidence": [
+            "https://openai.com/index/gpt-6-astra/",
+            "https://openai.com/api/pricing/",
+            "https://benchlm.ai",
+            "https://lmarena.ai",
+            "https://developers.openai.com/api/docs/pricing",
+            "https://learn.chatgpt.com/docs/models",
+            "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 10,
+            "output": 50
+          },
+          "costBasis": "Standard API-price ratio to Sol; subscription burn varies by effort, mode and task",
+          "localAcceptance": {
+            "date": "2026-11-12",
+            "effort": "low",
+            "accepted": true,
+            "answer": "OK"
+          }
+        },
+        {
+          "id": "gpt-6.1-sol",
+          "group": null,
+          "released": "2026-09-29",
+          "tier": "strong",
+          "contextWindow": 1050000,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "server and backend implementation to a written spec",
+            "independent review and reproduction tests",
+            "fix rounds"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "User-reported over-engineering and very large check runs; anecdotal, not independently reproduced"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://openai.com/index/introducing-gpt-6-1-sol/",
+            "https://artificialanalysis.ai",
+            "https://livebench.ai",
+            "https://www.reddit.com/r/codex",
+            "https://www.reddit.com/r/codex/comments/1xskku2/61_sol_over_engineering_and_over_prudent/",
+            "https://developers.openai.com/api/docs/pricing",
+            "https://learn.chatgpt.com/docs/models",
+            "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10
+          },
+          "costBasis": "Standard API-price ratio to Sol; subscription burn varies by effort, mode and task",
+          "localAcceptance": {
+            "date": "2026-11-12",
+            "effort": "low",
+            "accepted": true,
+            "answer": "OK"
+          },
+          "cliDefaultContextWindow": 500000
         },
+        {
+          "id": "gpt-6.1-terra",
+          "group": null,
+          "released": "2026-10-26",
+          "tier": "fast",
+          "contextWindow": 1050000,
+          "efforts": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "relativeAllowanceCost": 0.5,
+          "bestFor": [
+            "routine test additions",
+            "mechanical refactors",
+            "fast visual/computer-use helpers"
+          ],
+          "weakAt": [
+            "deep multi-repository architecture"
+          ],
+          "evidence": [
+            "https://openai.com/index/introducing-gpt-6-1-terra/",
+            "https://openai.com/api/pricing/",
+            "https://help.openai.com/en/articles/9789422-chatgpt-codex-changelog",
+            "https://developers.openai.com/api/docs/pricing",
+            "https://learn.chatgpt.com/docs/models",
+            "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 1,
+            "output": 5
+          },
+          "costBasis": "Standard API-price ratio to Sol; subscription burn varies by effort, mode and task",
+          "localAcceptance": {
+            "date": "2026-11-12",
+            "effort": "low",
+            "accepted": true,
+            "answer": "OK"
+          }
+        },
+        {
+          "id": "gpt-6-luna",
+          "group": null,
+          "released": "2026-09-22",
+          "tier": "fast",
+          "contextWindow": 1050000,
+          "efforts": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "relativeAllowanceCost": 0.05,
+          "bestFor": [
+            "cheap bulk transforms",
+            "linting, string extraction, mechanical cleanup"
+          ],
+          "weakAt": [
+            "non-trivial reasoning and multi-step debugging"
+          ],
+          "evidence": [
+            "https://openai.com/api/pricing/",
+            "https://help.openai.com/en/articles/9789422-chatgpt-codex-changelog",
+            "https://developers.openai.com/api/docs/pricing",
+            "https://learn.chatgpt.com/docs/models",
+            "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 0.1,
+            "output": 0.5
+          },
+          "costBasis": "Standard API-price ratio to Sol; subscription burn varies by effort, mode and task",
+          "localAcceptance": {
+            "date": "2026-11-12",
+            "effort": "low",
+            "accepted": true,
+            "answer": "OK"
+          }
+        }
+      ],
+      "signIn": "codex login",
+      "usageCommand": "Session-log rate_limits; stale/missing: app-server account/rateLimits/read",
+      "observedCliVersion": "0.167.0"
+    },
+    "agy": {
+      "cli": "agy",
+      "plans": [
+        {
+          "name": "Free / Google AI Plus",
+          "windows": [
+            "weekly"
+          ],
+          "notes": "Weekly refresh; Gemini 3.8 Flash available. Retiring legacy models are not recommended. https://antigravity.google/docs/plans"
+        },
+        {
+          "name": "Paid Google AI Pro",
+          "windows": [
+            "5-hour",
+            "weekly"
+          ],
+          "notes": "Argon eligibility and non-trial Claude 5.5 third-party access; Carbon is not included. Hydrogen vendor announcement includes paid Pro. https://antigravity.google/docs/models ; https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/"
+        },
+        {
+          "name": "Google AI Ultra / Enterprise",
+          "windows": [
+            "5-hour",
+            "weekly"
+          ],
+          "notes": "Carbon available; Gemini and Claude/GPT groups have independent allowances. Tier entitlements and enterprise terms vary. https://antigravity.google/docs/models"
+        }
+      ],
+      "models": [
         {
           "id": "gemini-4-carbon-medium",
           "group": "Gemini Models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "released": "2026-10-28",
+          "tier": "frontier",
+          "contextWindow": 1048576,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "Independent code/security review",
+            "Deep reasoning and grounded research"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Paid Ultra/Enterprise access only in Antigravity",
+            "Reasoning latency and token use vary by task"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://blog.google/technology/ai/gemini-4-carbon-our-next-frontier-model/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://artificialanalysis.ai",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "promotionalThrough": "2026-11-30",
+            "afterPromotionInput": 4,
+            "afterPromotionOutput": 20
+          }
         },
         {
           "id": "gemini-4-carbon-high",
           "group": "Gemini Models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "released": "2026-10-28",
+          "tier": "frontier",
+          "contextWindow": 1048576,
           "efforts": [
             "high"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "Independent code/security review",
+            "Deep reasoning and grounded research"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Paid Ultra/Enterprise access only in Antigravity",
+            "Reasoning latency and token use vary by task"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://blog.google/technology/ai/gemini-4-carbon-our-next-frontier-model/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://artificialanalysis.ai",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "promotionalThrough": "2026-11-30",
+            "afterPromotionInput": 4,
+            "afterPromotionOutput": 20
+          }
         },
         {
-          "id": "gemini-4-argon-low",
+          "id": "gemini-4-carbon-low",
           "group": "Gemini Models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "released": "2026-10-28",
+          "tier": "frontier",
+          "contextWindow": 1048576,
           "efforts": [
             "low"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "Independent code/security review",
+            "Deep reasoning and grounded research"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Paid Ultra/Enterprise access only in Antigravity",
+            "Reasoning latency and token use vary by task"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://blog.google/technology/ai/gemini-4-carbon-our-next-frontier-model/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://artificialanalysis.ai",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "promotionalThrough": "2026-11-30",
+            "afterPromotionInput": 4,
+            "afterPromotionOutput": 20
+          }
         },
         {
           "id": "gemini-4-argon-medium",
           "group": "Gemini Models",
-          "released": null,
+          "released": "2026-10-13",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1048576,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "bounded backend and CLI implementation",
+            "secondary security/patch checks"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "trails Carbon and Opus 5.5 on hardest root-cause debugging"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/blog/gemini-4-argon/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Pro with eligibility",
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "notes": "Introductory API rate equals Carbon, not proof of identical subscription burn"
+          }
         },
         {
           "id": "gemini-4-argon-high",
           "group": "Gemini Models",
-          "released": null,
+          "released": "2026-10-13",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1048576,
           "efforts": [
             "high"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "bounded backend and CLI implementation",
+            "secondary security/patch checks"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "trails Carbon and Opus 5.5 on hardest root-cause debugging"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/blog/gemini-4-argon/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Pro with eligibility",
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "notes": "Introductory API rate equals Carbon, not proof of identical subscription burn"
+          }
         },
         {
-          "id": "gemini-3.8-flash-low",
+          "id": "gemini-4-argon-low",
           "group": "Gemini Models",
-          "released": null,
-          "tier": "fast",
-          "contextWindow": 0,
+          "released": "2026-10-13",
+          "tier": "strong",
+          "contextWindow": 1048576,
           "efforts": [
             "low"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "bounded backend and CLI implementation",
+            "secondary security/patch checks"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "trails Carbon and Opus 5.5 on hardest root-cause debugging"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://antigravity.google/blog/gemini-4-argon/",
+            "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+            "https://antigravity.google/docs/models",
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "Google AI Pro with eligibility",
+            "Google AI Ultra",
+            "Enterprise"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 2,
+            "output": 10,
+            "notes": "Introductory API rate equals Carbon, not proof of identical subscription burn"
+          }
+        },
+        {
+          "id": "gemini-3.8-flash-high",
+          "group": "Gemini Models",
+          "released": "2026-09-01",
+          "tier": "fast",
+          "contextWindow": 1048576,
+          "efforts": [
+            "high"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Fast lookups and bounded edits",
+            "Low-latency mechanical work"
+          ],
+          "weakAt": [
+            "Architectural judgment below frontier-oriented models; exact comparisons depend on harness"
+          ],
+          "evidence": [
+            "https://antigravity.google/blog/gemini-3-8-flash-release/",
+            "https://antigravity.google/docs/models",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "All plans"
           ]
         },
         {
           "id": "gemini-3.8-flash-medium",
           "group": "Gemini Models",
-          "released": null,
+          "released": "2026-09-01",
           "tier": "fast",
-          "contextWindow": 0,
+          "contextWindow": 1048576,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "Fast lookups and bounded edits",
+            "Low-latency mechanical work"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Architectural judgment below frontier-oriented models; exact comparisons depend on harness"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://antigravity.google/blog/gemini-3-8-flash-release/",
+            "https://antigravity.google/docs/models",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "All plans"
           ]
         },
         {
-          "id": "gemini-3.8-flash-high",
+          "id": "gemini-3.8-flash-low",
           "group": "Gemini Models",
-          "released": null,
+          "released": "2026-09-01",
           "tier": "fast",
-          "contextWindow": 0,
+          "contextWindow": 1048576,
           "efforts": [
-            "high"
+            "low"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: research/implementation"
+            "Fast lookups and bounded edits",
+            "Low-latency mechanical work"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Architectural judgment below frontier-oriented models; exact comparisons depend on harness"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://antigravity.google/blog/gemini-3-8-flash-release/",
+            "https://antigravity.google/docs/models",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)",
+            "https://antigravity.google/docs/plans"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed",
+          "planAccess": [
+            "All plans"
           ]
         },
         {
           "id": "claude-opus-5-5-low",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-22",
           "tier": "frontier",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "low"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
         },
         {
           "id": "claude-opus-5-5-medium",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-22",
           "tier": "frontier",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
         },
         {
           "id": "claude-opus-5-5-high",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-22",
           "tier": "frontier",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "high"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
         },
         {
           "id": "claude-sonnet-5-5-low",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-28",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "low"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
         },
         {
           "id": "claude-sonnet-5-5-medium",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-28",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
         },
         {
           "id": "claude-sonnet-5-5-high",
           "group": "Claude and GPT models",
-          "released": null,
+          "released": "2026-09-28",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 1000000,
           "efforts": [
             "high"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: review/UI"
+            "Overflow implementation/review in separate third-party pool"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Same underlying Claude family; not independent of native Claude for cross-review"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://antigravity.google/docs/models",
+            "https://antigravity.google/docs/plans",
+            "Installed agy models listing, 2026-11-12 (exact concrete ID)"
+          ],
+          "costBasis": "Neutral placeholder unless noted; exact Antigravity model allowance multiplier not confirmed"
+        },
+        {
+          "id": "gemini-4-hydrogen-low",
+          "group": "Gemini Models",
+          "released": "2026-11-12",
+          "tier": null,
+          "contextWindow": 1000000,
+          "efforts": [
+            "low"
+          ],
+          "relativeAllowanceCost": 1,
+          "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
+          "bestFor": [
+            "Vendor positions rapid everyday execution; allocation pending"
+          ],
+          "weakAt": [
+            "Overall tier and exact allowance cost not confirmed"
+          ],
+          "planAccess": [
+            "Paid Google AI Pro",
+            "Google AI Ultra",
+            "Eligible business/enterprise rollout"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 1.5,
+            "output": 7.5
+          },
+          "evidence": [
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
           ]
         },
         {
-          "id": "gpt-oss-120b-medium",
-          "group": "Claude and GPT models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "id": "gemini-4-hydrogen-medium",
+          "group": "Gemini Models",
+          "released": "2026-11-12",
+          "tier": null,
+          "contextWindow": 1000000,
           "efforts": [
             "medium"
           ],
           "relativeAllowanceCost": 1,
+          "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Provisional: general coding"
+            "Vendor positions rapid everyday execution; allocation pending"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Overall tier and exact allowance cost not confirmed"
           ],
+          "planAccess": [
+            "Paid Google AI Pro",
+            "Google AI Ultra",
+            "Eligible business/enterprise rollout"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 1.5,
+            "output": 7.5
+          },
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
           ]
         },
         {
-          "id": "gemini-pro-orchestrator",
+          "id": "gemini-4-hydrogen-high",
           "group": "Gemini Models",
-          "released": null,
-          "tier": "strong",
-          "contextWindow": 0,
+          "released": "2026-11-12",
+          "tier": null,
+          "contextWindow": 1000000,
           "efforts": [
-            "low",
-            "medium",
             "high"
           ],
           "relativeAllowanceCost": 1,
+          "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Provisional: research/planning"
+            "Vendor positions rapid everyday execution; allocation pending"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Overall tier and exact allowance cost not confirmed"
           ],
+          "planAccess": [
+            "Paid Google AI Pro",
+            "Google AI Ultra",
+            "Eligible business/enterprise rollout"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 1.5,
+            "output": 7.5
+          },
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
           ]
+        },
+        {
+          "id": "gemini-4-hydrogen-xhigh",
+          "group": "Gemini Models",
+          "released": "2026-11-12",
+          "tier": null,
+          "contextWindow": 1000000,
+          "efforts": [
+            "xhigh"
+          ],
+          "relativeAllowanceCost": 1,
+          "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
+          "bestFor": [
+            "Vendor positions rapid everyday execution; allocation pending"
+          ],
+          "weakAt": [
+            "Overall tier and exact allowance cost not confirmed"
+          ],
+          "planAccess": [
+            "Paid Google AI Pro",
+            "Google AI Ultra",
+            "Eligible business/enterprise rollout"
+          ],
+          "apiPriceUsdPerMillion": {
+            "input": 1.5,
+            "output": 7.5
+          },
+          "evidence": [
+            "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
+          ]
+        }
+      ],
+      "signIn": "agy",
+      "usageCommand": "agy --print /usage --output-format json (direct spawn; no model call)",
+      "observedCliVersion": "1.5.7",
+      "excludedModels": [
+        {
+          "id": "gpt-oss-120b-medium",
+          "reason": "Still locally listed, but vendor schedules removal on 2026-11-18; excluded from active recommendations"
+        },
+        {
+          "id": "gemini-pro-orchestrator",
+          "reason": "Locally listed routing mode, not a single model; per-model capability and allowance attribution not confirmed"
         }
       ]
     },
     "grok": {
       "cli": "grok",
-      "signIn": "grok login",
-      "usageCommand": null,
       "plans": [
         {
-          "name": "grok.com subscription; allowance unknown",
-          "windows": [],
-          "notes": "No headless plan-allowance command. grok usage and turn envelopes report local spend, not remaining plan allowance. Never send -p /usage."
+          "name": "Paid X Subscription seat",
+          "windows": [
+            "weekly"
+          ],
+          "notes": "One first-party seat pool shared across supported Grok products and Cursor, not a dedicated Build pool. No 5-hour cap described by this source. Third-party Cursor models/overages use Additional Usage. https://docs.x.ai/x-subscription/usage-limits"
         }
       ],
       "models": [
         {
           "id": "grok-4.7",
           "group": null,
-          "released": null,
+          "released": "2026-09-21",
           "tier": "frontier",
-          "contextWindow": 0,
+          "contextWindow": 500000,
           "efforts": [
             "low",
             "medium",
@@ -552,44 +1056,62 @@
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: general coding"
+            "Live web/X research",
+            "Cross-family review and implementation"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "User reports 2–3x output tokens; anecdotal, not a fixed billing multiplier",
+            "Long contexts at or above 200K can incur higher rates"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://x.ai/news",
+            "https://docs.x.ai/release-notes",
+            "https://docs.x.ai/grok-build",
+            "https://artificialanalysis.ai",
+            "https://docs.x.ai/developers/grok-4-7",
+            "https://docs.x.ai/x-subscription/usage-limits",
+            "Installed grok 1.0.41 models listing, 2026-11-12",
+            "https://www.reddit.com/r/cursor/comments/1x447sr/grok_47_just_became_worse/"
+          ],
+          "costBasis": "Neutral baseline; older-model subscription multiplier not independently confirmed"
         },
         {
           "id": "grok-4.7-build-fast",
           "group": null,
-          "released": null,
-          "tier": "fast",
-          "contextWindow": 0,
+          "released": "2026-09-21",
+          "tier": "frontier",
+          "contextWindow": 500000,
           "efforts": [
             "low",
             "medium",
             "high",
             "xhigh"
           ],
-          "relativeAllowanceCost": 1,
+          "relativeAllowanceCost": 2,
           "bestFor": [
-            "Provisional: cheap coding/tests"
+            "Low-latency Grok coding on paid Build access"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Faster serving of the same model, not a cheaper tier",
+            "Not public xAI API or Build free-tier access"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://x.ai/news",
+            "https://docs.x.ai/release-notes",
+            "https://docs.x.ai/grok-build",
+            "https://artificialanalysis.ai",
+            "https://docs.x.ai/developers/grok-4-7",
+            "https://docs.x.ai/x-subscription/usage-limits",
+            "Installed grok 1.0.41 models listing, 2026-11-12"
+          ],
+          "costBasis": "Vendor Fast rate is 2x standard, 1.5x long-context rate; local ID verified"
         },
         {
           "id": "grok-4.6",
           "group": null,
-          "released": null,
+          "released": "2026-08-12",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 500000,
           "efforts": [
             "low",
             "medium",
@@ -598,120 +1120,133 @@
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: general coding"
+            "Legacy/secondary tasks when locally offered"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Older-model performance claims not independently remeasured"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://docs.x.ai/release-notes",
+            "https://docs.x.ai/models",
+            "https://artificialanalysis.ai",
+            "https://docs.x.ai/developers/grok-4-7",
+            "https://docs.x.ai/x-subscription/usage-limits",
+            "Installed grok 1.0.41 models listing, 2026-11-12"
+          ],
+          "costBasis": "Neutral baseline; older-model subscription multiplier not independently confirmed"
         },
         {
           "id": "grok-4.5",
           "group": null,
-          "released": null,
+          "released": "2026-07-16",
           "tier": "strong",
-          "contextWindow": 0,
+          "contextWindow": 500000,
           "efforts": [
             "low",
             "medium",
-            "high",
-            "xhigh"
+            "high"
           ],
           "relativeAllowanceCost": 1,
           "bestFor": [
-            "Provisional: general coding"
+            "Legacy/secondary tasks when locally offered"
           ],
           "weakAt": [
-            "Not independently evaluated"
+            "Older-model performance claims not independently remeasured"
           ],
           "evidence": [
-            "CLI inventory supplied or observed on 2026-11-12; availability only, no capability measurement"
-          ]
+            "https://docs.x.ai/release-notes",
+            "https://docs.x.ai/models",
+            "https://docs.x.ai/developers/grok-4-7",
+            "https://docs.x.ai/x-subscription/usage-limits",
+            "Installed grok 1.0.41 models listing, 2026-11-12"
+          ],
+          "costBasis": "Neutral baseline; older-model subscription multiplier not independently confirmed"
         }
-      ]
+      ],
+      "signIn": "grok login",
+      "usageCommand": null,
+      "observedCliVersion": "1.0.41"
     }
   },
   "allocation": {
     "hardest": [
       {
+        "provider": "claude",
+        "model": "claude-fable-5-2",
+        "effort": "high",
+        "why": "Vendor long-horizon reasoning focus and highest observed WebDev rank; reserve the capped weekly Fable share"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-4-carbon-high",
+        "effort": "high",
+        "why": "Independent Google frontier reasoning pool; available only with Ultra/Enterprise eligibility"
+      },
+      {
         "provider": "codex",
         "model": "gpt-6-astra",
         "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "claude",
-        "model": "claude-opus-5-5",
-        "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "grok",
-        "model": "grok-4.7",
-        "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "OpenAI top model for especially demanding work; about 5x Sol standard API price"
       }
     ],
     "ui": [
       {
         "provider": "claude",
+        "model": "claude-fable-5-2",
+        "effort": "high",
+        "why": "WebDev Overall first (1838 on 2026-11-11); 2x Opus list price and capped included Fable share"
+      },
+      {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "why": "WebDev second (1815); half Fable standard API price"
+      },
+      {
+        "provider": "claude",
         "model": "claude-sonnet-5-5",
-        "effort": "medium",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-sonnet-5-5-low",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "codex",
-        "model": "gpt-6.1-sol",
-        "effort": "medium",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "effort": "high",
+        "why": "Lower-cost implementation option; WebDev xhigh rank was third, not a guarantee at high effort"
       }
     ],
     "server": [
       {
         "provider": "codex",
         "model": "gpt-6.1-sol",
-        "effort": "medium",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "effort": "high",
+        "why": "Vendor workhorse with near-Astra positioning at one-fifth the standard API price; locally accepted"
       },
       {
-        "provider": "grok",
-        "model": "grok-4.7-build-fast",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "high",
+        "why": "Everyday implementation option at half Opus standard API price"
       },
       {
         "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "gemini-4-argon-high",
+        "effort": "high",
+        "why": "Bounded implementation in a separate Gemini pool"
       }
     ],
     "tests": [
       {
         "provider": "codex",
-        "model": "gpt-6.1-sol",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "gpt-6.1-terra",
+        "effort": "medium",
+        "why": "Routine implementation/tests at half Sol standard API price; locally accepted"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-3.8-flash-medium",
+        "effort": "medium",
+        "why": "Fast bounded test/mechanical work in the Gemini pool"
       },
       {
         "provider": "grok",
-        "model": "grok-4.7-build-fast",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "claude",
-        "model": "claude-haiku-5-5",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "grok-4.6",
+        "effort": "medium",
+        "why": "Independent Grok pool fallback; older-model performance advantages not assumed"
       }
     ],
     "review": [
@@ -719,92 +1254,102 @@
         "provider": "agy",
         "model": "gemini-4-carbon-high",
         "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "Independent Google model family for review of Claude/OpenAI work; require reproduction tests"
       },
       {
         "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      },
-      {
-        "provider": "agy",
-        "model": "claude-opus-5-5-low",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
-      }
-    ],
-    "security": [
-      {
-        "provider": "codex",
-        "model": "gpt-6-astra",
-        "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "gpt-6.1-sol",
+        "effort": "xhigh",
+        "why": "Cross-family review with a cheaper OpenAI workhorse; require proof"
       },
       {
         "provider": "claude",
         "model": "claude-opus-5-5",
         "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "Cross-family architectural review of non-Claude work"
+      }
+    ],
+    "security": [
+      {
+        "provider": "agy",
+        "model": "gemini-4-carbon-high",
+        "effort": "high",
+        "why": "Vendor cybersecurity evaluations and independent family; no claim of zero refusals"
+      },
+      {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "xhigh",
+        "why": "Workhorse for abuse/logic tracing and reproduction tests; no uncorroborated security-underperformance claims"
       },
       {
         "provider": "grok",
         "model": "grok-4.7",
-        "effort": "high",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "effort": "xhigh",
+        "why": "Independent third opinion; user-reported limitations still require tests"
       }
     ],
     "research": [
       {
         "provider": "agy",
-        "model": "gemini-3.8-flash-low",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "gemini-4-carbon-high",
+        "effort": "high",
+        "why": "Google-grounded synthesis and deep reasoning; verify actual web/page tools before accepting citations"
       },
       {
         "provider": "grok",
-        "model": "grok-4.7-build-fast",
-        "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "model": "grok-4.7",
+        "effort": "high",
+        "why": "Native web/X tools and separate shared seat pool; not guaranteed lower token use"
       },
       {
-        "provider": "claude",
-        "model": "claude-sonnet-5-5",
-        "effort": "medium",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "provider": "agy",
+        "model": "gemini-3.8-flash-high",
+        "effort": "high",
+        "why": "Fast lookups when conserving frontier-model allowance"
       }
     ],
     "bulk": [
       {
-        "provider": "grok",
-        "model": "grok-4.7-build-fast",
+        "provider": "codex",
+        "model": "gpt-6-luna",
         "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "Focused bulk transforms at 0.05x Sol standard API price; locally accepted"
       },
       {
         "provider": "claude",
         "model": "claude-haiku-5-5",
         "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "High-volume tasks; 0.05x Sonnet base API price only within its short-input pricing band"
       },
       {
         "provider": "agy",
         "model": "gemini-3.8-flash-low",
         "effort": "low",
-        "why": "Provisional planning preference; capability and relative allowance cost not yet verified online"
+        "why": "Fast bounded Gemini-pool work; exact subscription multiplier unknown"
       }
     ]
   },
   "changesSinceLastCheck": [
-    "Initial portable catalog; online capability/allocation verification pending.",
-    "Added Grok Build and the two independent Antigravity allowance groups."
+    "Applied all allocation-relevant fact-check corrections to the supplied research JSON.",
+    "Corrected Astra/Sol/Terra/Luna roles and API-price ratios; cheap kinds do not select Astra.",
+    "Corrected Fable/Opus WebDev ranking, 2x list-price ratio, plan cap, and launch offer; removed unsupported model-behavior allegations.",
+    "Corrected Pro-tier window/Oct-29 distinctions, Carbon plan access and equal introductory Argon API price.",
+    "Checked concrete AGY effort-suffixed IDs and all four local Grok IDs; excluded retiring legacy AGY recommendations.",
+    "All four focused Codex IDs accepted a minimal low-effort OK call; native Claude inference was intentionally skipped.",
+    "Added Hydrogen concrete IDs from the CLI, independently opened its Nov-12 vendor announcement, left tier null and allowance cost unresolved."
   ],
   "notConfirmed": [
-    "All capability tiers, bestFor suggestions, relative allowance costs, and allocation are provisional, not online-verified.",
-    "Release dates are unknown (null); context windows are unknown (0); relativeAllowanceCost=1 is a neutral placeholder.",
-    "Claude and Codex IDs include the owner-supplied CLI inventory; these CLIs expose no simple model-list command in the checked help.",
-    "Per-model effort acceptance and plan differences must be verified; advertised CLI effort levels do not prove every model accepts them.",
-    "Native Claude status-line cache is not installed; plan allowances for Grok are unknown.",
-    "Grok built-in sandbox enforcement on Windows is not confirmed; the guide documents Linux/macOS."
-  ]
+    "Exact subscription token/task ceilings and per-model allowance multipliers are not publicly established here; relativeAllowanceCost is a documented API-price proxy or a neutral placeholder, not measured plan burn.",
+    "Hydrogen overall tier versus Carbon/Argon and exact subscription allowance cost remain unconfirmed. Vendor API price is not a quota multiplier; its Orchestrator savings claim is not standalone Hydrogen cost.",
+    "Hydrogen research worker could search but could not open vendor pages; planner opened the vendor announcement and confirmed release, plan rollout, context and API price independently. No Hydrogen inference probe was run.",
+    "Claude real calls were skipped. Four IDs are documented; Fable 5.2 docs require CLI >=2.1.321 while the installed CLI is 2.1.296, so local Fable acceptance is unverified and may require updating.",
+    "Security refusal observations for Opus/Fable and higher Grok output-token use are user reports, not universal properties or measured rates. Sol over-engineering remains an anecdotal report.",
+    "Other research benchmark values, context/effort settings, release dates and CLI-change claims were not all independently reproduced; evidence comes from the supplied research unless noted. No Aider or standardized raw-CLI review/research comparison is claimed.",
+    "OpenAI API maximum context and CLI defaults differ: the Work/Codex model page says Sol defaults to 500000. Effective subscription context/settings vary by client.",
+    "Older AGY gpt-oss-120b-medium remains in the local list despite scheduled Nov-18 retirement; it is excluded from active recommendations, not claimed already retired. Orchestrator is recorded as an excluded routing mode, not a ranked single model.",
+    "Grok older-model API/plan availability and exact plan prices/multipliers beyond the checked shared-pool page are not confirmed. CLI 1.0.41 already lists 4.7 and Build Fast; no upgrade requirement is inferred.",
+    "Windows kernel sandbox enforcement, fresh-agent plugin activation and native Claude status-line callbacks remain unverified."
+  ],
+  "verifiedBy": "research: Gemini 4 Carbon; fact-check of the allocation-relevant claims: Grok 4.7; model ids checked against the installed CLIs"
 }

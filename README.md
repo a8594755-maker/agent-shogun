@@ -247,11 +247,12 @@ misclassified as quota exhaustion. No Grok cost is inferred from token prices.
 The source of truth is
 `skills/multi-agent-dispatch/references/model-catalog.json`. SKILL.md prominently
 states its last verification date/by and next-check date, followed by generated
-model/allowance tables and the first two choices for each work kind. The initial
-2026-11-12 inventory explicitly says capability and allocation have **not** been
-verified online. `frontier?`/`strong?`/`fast?`, best-for suggestions, and allocation
-are provisional; null release dates and context size 0 mean unknown, while cost 1
-is a neutral unverified placeholder. They are not measured model comparisons.
+model/allowance tables and the first two choices for each work kind. The original
+provisional inventory is preserved in history. The current catalog applies the
+supplied research's allocation-relevant fact-check corrections and records local
+ID acceptance. Null tier/release and context size 0 mean unconfirmed. `costBasis`
+distinguishes API-price proxies from actual subscription burn; 1 can be a neutral
+placeholder. Effort variants share one generated model row and an ID pattern.
 
 Before dispatch, the skill tells the agent to compare today's date, research
 first when older than 15 days or when asked, and follow
@@ -357,7 +358,7 @@ resolve from the command's working directory; absolute paths are recommended.
 | Field | Default / meaning |
 | --- | --- |
 | `providers.<codex\|agy\|claude\|grok>.binary` | Search PATH unless configured; Grok additionally checks `~/.grok/bin/grok[.exe]`. Use a native executable or .js/.mjs/.cjs entry point. Common npm shims resolve without a shell. |
-| `providers.<p>.model`, `.effort` | codex: `gpt-6-astra`, low; agy: `gemini-3.8-flash-low`, low; claude: `claude-sonnet-5-5`, medium; grok: `grok-4.7-build-fast`, low. Used when start flags are absent. |
+| `providers.<p>.model`, `.effort` | codex: `gpt-6.1-sol`, low; agy: `gemini-3.8-flash-low`, low; claude: `claude-sonnet-5-5`, medium; grok: `grok-4.7-build-fast`, low. Used when start flags are absent. |
 | `access` | `safe`; session metadata preserves this choice for follow-ups. |
 | `guards.blockPush` | `true`; child environment override for origin pushes. |
 | `guards.env` | Map of environment names to replacement strings. Set to `false` to disable overrides; set an entry to `null` to remove that variable from the child. Use dummy values, never secrets in shared config. |
@@ -478,10 +479,11 @@ Win-CodexBar integration is tested against mapped fixtures and its public Rust
 serialization, not a live installation. macOS/Linux, live reboot, and real-provider
 full access remain unverified.
 
-Initial catalog capabilities, release dates, context windows, relative allowance
-costs and allocations remain unverified online. The separate planning agent will
-replace this provisional inventory with researched evidence. Native Claude/Codex
-model retirement checks require a vendor source or a richer discovery interface.
+The current catalog records which research claims were fact-checked, which IDs
+were accepted locally, and what remains open. Native Claude calls were skipped;
+Fable's documented minimum CLI version exceeds the installed version. Hydrogen's
+overall tier and subscription allowance multiplier remain unconfirmed. API-price
+ratios are not measured subscription burn, and user reports are labeled anecdotal.
 
 ## Real smoke evidence
 
