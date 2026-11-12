@@ -1,0 +1,10 @@
+{
+  "name": "roster",
+  "version": "0.1.0",
+  "description": "Manage coding CLI workers and subscription allowance from one planner",
+  "type": "module",
+  "private": true,
+  "bin": { "roster": "bin/roster.mjs" },
+  "scripts": { "test": "node --test", "check": "node --check bin/roster.mjs" },
+  "engines": { "node": ">=18" }
+}
