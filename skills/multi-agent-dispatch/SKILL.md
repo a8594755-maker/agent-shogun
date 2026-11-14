@@ -45,7 +45,7 @@ Unknown tiers are null, context size 0 and release null mean unconfirmed. Read e
 | claude | Status-line rate_limits cache, or supplied dashboard reading (per-model weekly: manual) | 5-hour / weekly / weekly:Fable |
 | codex | Session-log rate_limits; stale/missing: app-server account/rateLimits/read | 5-hour / weekly |
 | agy | agy --print /usage --output-format json (direct spawn; no model call) | weekly / 5-hour |
-| grok | Unknown; local token/cost gauge | weekly |
+| grok | grok agent --no-leader stdio, JSON-RPC initialize then _x.ai/billing (no model turn; undocumented extension) | weekly |
 
 | Work | First choice | Second choice |
 | --- | --- | --- |

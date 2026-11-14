@@ -3,6 +3,7 @@ import { grokAuth } from '../provider-auth.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveModelEffort } from '../model-selection.mjs';
+import { readGrokUsage } from '../grok-usage.mjs';
 
 export function grokSafeAllows(directory, configured) {
   const commands = configured || ['node --test', 'npm test'];
@@ -34,5 +35,5 @@ export default {
     const e = await envelope(file), complete = e.stopReason === 'end_turn';
     return { sessionId: e.sessionId, answer: e.text || '', usage: tokens(e.usage), ok: complete && e.type !== 'error', error: e.stopReason === 'cancelled' ? 'cancelled (permission?)' : e.message || (!complete ? `Grok stopped: ${e.stopReason || 'unknown'}` : undefined), costUsd: Number.isFinite(e.total_cost_usd) && e.total_cost_usd >= 0 ? e.total_cost_usd : null, details: { stopReason: e.stopReason, numTurns: e.num_turns, costIsPartial: !!e.cost_is_partial, usageIsIncomplete: !!e.usage_is_incomplete } };
   },
-  async readUsage() { return { unknown: true, source: 'local roster Grok receipts', reason: 'No headless plan-allowance command; local token/cost gauge only.' }; }
+  readUsage: readGrokUsage
 };

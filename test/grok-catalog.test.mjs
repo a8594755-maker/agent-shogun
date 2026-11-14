@@ -75,7 +75,7 @@ test('pick never chooses signed-out or unknown-auth providers', () => {
   assert.equal(pick(c, 'custom', installed, []).selected.provider, 'grok');
 });
 test('Grok allowance reader never invokes a fake /usage inference call', async () => {
-  const r = await adapters.grok.readUsage({ binary: await findBinary('grok', path.join(project, 'test', 'fakes', 'grok.mjs')) }); assert.equal(r.unknown, true); assert.match(r.reason, /No headless/);
+  const r = await adapters.grok.readUsage({ binary: await findBinary('grok', path.join(project, 'test', 'fakes', 'grok.mjs')) }); assert.equal(r.unknown, true); assert.match(r.reason, /local token\/cost gauge only/); assert.equal(r.groups, undefined);
 });
 test('catalog generated tables, date line and next check exactly match JSON', async () => {
   const c = validateCatalog(await seed()), text = await fs.readFile(path.join(defaultSkillRoot, 'SKILL.md'), 'utf8');

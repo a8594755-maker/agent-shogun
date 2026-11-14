@@ -1291,7 +1291,7 @@
         }
       ],
       "signIn": "grok login",
-      "usageCommand": null,
+      "usageCommand": "grok agent --no-leader stdio, JSON-RPC initialize then _x.ai/billing (no model turn; undocumented extension)",
       "observedCliVersion": "1.0.41"
     }
   },
@@ -1476,7 +1476,8 @@
     "Listed: gpt-oss-120b-medium in the Claude and GPT group, reportedly removed 2026-11-18: not allocated",
     "No separate Gemini CLI installed: Gemini models are reached only through agy",
     "Grok signed in again on 2026-11-14 18:39 local (it had reported not authenticated earlier the same day)",
-    "Independent context: Artificial Analysis lists Grok 4.7 xhigh at 34, far below the others: keep Grok for web research and third-family second opinions"
+    "Independent context: Artificial Analysis lists Grok 4.7 xhigh at 34, far below the others: keep Grok for web research and third-family second opinions",
+    "Grok allowance is now readable: grok agent --no-leader stdio + _x.ai/billing gives creditUsagePercent of the weekly period and the plan (SuperGrok); verified on grok 1.0.41, built into roster"
   ],
   "notConfirmed": [
     "Exact subscription token/task ceilings and per-model allowance multipliers are not publicly established here; relativeAllowanceCost is a documented API-price proxy or a neutral placeholder, not measured plan burn.",

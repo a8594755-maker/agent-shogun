@@ -73,10 +73,19 @@ are bypassable and are not an isolation boundary or blanket network restriction.
   cache. Status-line stdin supplies `rate_limits.five_hour` and `.seven_day` with
   `used_percentage` and Unix-seconds `resets_at` after a response. Per-model weekly
   readings require the planner/dashboard. Do not install a hook without permission.
-- Grok: subscription allowance is unknown. Sum reported turn-envelope tokens and
-  `total_cost_usd` over 5 hours / 7 days as a rough local gauge; absent cost is
-  unknown. Never send `grok -p /usage`; it calls the model. Persisted session spend
-  from `grok usage` is not remaining allowance.
+- Grok: start `grok agent --no-leader stdio` and speak JSON-RPC on stdin/stdout:
+  `initialize` with `{"protocolVersion":1,"clientCapabilities":{}}`, then
+  `_x.ai/billing` with `{}`. The result's `config.creditUsagePercent` is the plan
+  usage of `config.currentPeriod` (`type` USAGE_PERIOD_TYPE_WEEKLY, `end` = reset),
+  and `subscription_tier` names the plan (for example SuperGrok). It is a control
+  call: no session, no prompt, no model turn; the CLI uses its own sign-in, so never
+  read `~/.grok/auth.json`. `--no-leader` keeps it away from the user's shared
+  leader; end the process after the reply. `_x.ai/billing` is an undocumented xAI
+  extension (verified on grok 1.0.41, 2026-11-14): if it is missing, errors, or
+  lacks the percentage (API-key sign-in), the allowance is unknown, never 0 %; fall
+  back to summing turn-envelope tokens and `total_cost_usd` as a rough local gauge.
+  Never send `grok -p /usage`; it calls the model. Persisted session spend from
+  `grok usage` is not remaining allowance.
 
 Record source and observation time, exclude signed-out workers, and disclose
 unknown/stale readings. Prefer the catalog order unless allowance constraints
