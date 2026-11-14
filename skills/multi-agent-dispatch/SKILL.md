@@ -5,8 +5,8 @@ description: Dispatch coding work across provider CLIs using a portable model ca
 
 # Multi-agent dispatch
 
-**Catalog: last verified 2026-11-12 by research: Gemini 4 Carbon; fact-check of the allocation-relevant claims: Grok 4.7; model ids checked against the installed CLIs**
-Next check: 2026-11-27 (verified + 15 days).
+**Catalog: last verified 2026-11-14 by Claude Opus 5.5 (planner session), partial re-check of the Antigravity lineup on the owner's request; other providers carried over from 2026-11-12**
+Next check: 2026-11-29 (verified + 15 days).
 
 Before you dispatch anything, compare today's date with the date above. If the catalog is more than 15 days old, or the user asks you to re-check, do the model check first: follow [references/model-check-brief.md](references/model-check-brief.md), handing web research to the eligible provider with the most allowance left.
 Verify every model ID against an installed CLI list or an opened vendor page; open the pages behind any claim that changes allocation. Include the previous catalog and report what changed.
@@ -30,7 +30,10 @@ Unknown tiers are null, context size 0 and release null mean unconfirmed. Read e
 | agy | `gemini-3.8-flash-<effort>` | low / medium / high | fast | Fast lookups and bounded edits; Low-latency mechanical work | Gemini Models |
 | agy | `claude-opus-5-5-<effort>` | low / medium / high | frontier | Overflow implementation/review in separate third-party pool | Claude and GPT models |
 | agy | `claude-sonnet-5-5-<effort>` | low / medium / high | strong | Overflow implementation/review in separate third-party pool | Claude and GPT models |
-| agy | `gemini-4-hydrogen-<effort>` | low / medium / high / xhigh | unknown | Vendor positions rapid everyday execution; allocation pending | Gemini Models |
+| agy | `gemini-4-hydrogen-<effort>` | low / medium / high / xhigh | fast / strong | Bounded implementation and test/fix loops at near Sonnet 5.5 / GPT-6.1 Sol level, faster and cheaper (Artificial Analysis Intelligence Index v5: 54 at xhigh, 51 at high, 41 medium, 27 low; Sol and Sonnet 55; Opus 5.5 59; Carbon 60; Fable 65); Executor half of the Orchestrator | Gemini Models |
+| agy | `gemini-pro-orchestrator` | default | frontier | Long multi-step agent tasks: Carbon plans, Hydrogen executes | Gemini Models |
+| agy | `gemini-pro-orchestrator-argon` | default | strong | Same as the Carbon orchestrator at lower cost: Argon plans, Hydrogen executes | Gemini Models |
+| agy | `gpt-oss-120b-<effort>` | medium | unknown | Not confirmed | Claude and GPT models |
 | grok | `grok-4.7` | low / medium / high / xhigh | frontier | Live web/X research; Cross-family review and implementation | provider pool |
 | grok | `grok-4.7-build-fast` | low / medium / high / xhigh | frontier | Low-latency Grok coding on paid Build access | provider pool |
 | grok | `grok-4.6` | low / medium / high / xhigh | strong | Legacy/secondary tasks when locally offered | provider pool |
@@ -48,8 +51,8 @@ Unknown tiers are null, context size 0 and release null mean unconfirmed. Read e
 | --- | --- | --- |
 | hardest | `claude/claude-fable-5-2` (high) | `agy/gemini-4-carbon-high` (high) |
 | ui | `claude/claude-fable-5-2` (high) | `claude/claude-opus-5-5` (high) |
-| server | `codex/gpt-6.1-sol` (high) | `claude/claude-sonnet-5-5` (high) |
-| tests | `codex/gpt-6.1-terra` (medium) | `agy/gemini-3.8-flash-medium` (medium) |
+| server | `codex/gpt-6.1-sol` (high) | `agy/gemini-4-hydrogen-xhigh` (xhigh) |
+| tests | `codex/gpt-6.1-terra` (medium) | `agy/gemini-4-hydrogen-high` (high) |
 | review | `agy/gemini-4-carbon-high` (high) | `codex/gpt-6.1-sol` (xhigh) |
 | security | `agy/gemini-4-carbon-high` (high) | `codex/gpt-6.1-sol` (xhigh) |
 | research | `agy/gemini-4-carbon-high` (high) | `grok/grok-4.7` (high) |
@@ -69,7 +72,7 @@ Use one planner to own acceptance and integration. Split independent work by fil
 Project rules come from the project's own configuration or instructions and always win over the catalog. Never copy a project's rule into this skill.
 Each brief states the goal, owned files, directory/branch, acceptance checks and forbidden mechanisms (for example no dependencies, schema changes, network, deployment, publication or test weakening). Environment guards are accident guards, not full enforcement.
 Workers run the type check and relevant tests, fix failures until green, commit only on their branch, and report the commit plus exact checks. Never push, deploy or publish without the user's corresponding authorization.
-With roster: `roster start worker-a --provider codex --brief brief.txt --worktree ../worker-a --branch worker/a --base HEAD`; inspect `status`, `wait`, `answer`, HEAD and diff. Resume via `roster send worker-a --message <file or text>`, after the prior turn ends.
+With roster: `roster start worker-a --provider codex --brief brief.txt --worktree ../worker-a --branch worker/a --base HEAD`; inspect `status`, `wait`, `answer`, HEAD and diff. Resume via `roster send worker-a --message <text>` or `--message-file <path>`, after the prior turn ends. Turns default to a 60-minute limit; use `--timeout` to change it and inspect status output age for stalls.
 Without roster, use separate worktrees and the provider CLI directly, with the same ownership and acceptance rules. Preserve IDs for resume. Verify actual results: background launch or a successful provider turn does not prove task completion, a commit, or passing tests.
 Read every answer and diff before merging accepted commits. Do not run review rounds per branch. When an answer comes back complicated, simplify the requirement and remove unnecessary mechanisms before adding instructions or workers.
 

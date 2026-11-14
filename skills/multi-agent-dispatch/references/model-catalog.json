@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-12",
+  "verifiedAt": "2026-11-14",
   "providers": {
     "claude": {
       "cli": "claude",
@@ -895,7 +895,7 @@
           "id": "gemini-4-hydrogen-low",
           "group": "Gemini Models",
           "released": "2026-11-12",
-          "tier": null,
+          "tier": "fast",
           "contextWindow": 1000000,
           "efforts": [
             "low"
@@ -903,10 +903,13 @@
           "relativeAllowanceCost": 1,
           "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Vendor positions rapid everyday execution; allocation pending"
+            "Bounded implementation and test/fix loops at near Sonnet 5.5 / GPT-6.1 Sol level, faster and cheaper (Artificial Analysis Intelligence Index v5: 54 at xhigh, 51 at high, 41 medium, 27 low; Sol and Sonnet 55; Opus 5.5 59; Carbon 60; Fable 65)",
+            "Executor half of the Orchestrator"
           ],
           "weakAt": [
-            "Overall tier and exact allowance cost not confirmed"
+            "Terminal agent work: Artificial Analysis Terminal-Bench 4.0 54 % at high/xhigh vs Claude Opus 5.5 about 65 %; vendor Terminal-Bench 4.1 57.0 % vs Sonnet 5.5 63.9 %",
+            "No independent SWE-bench Verified score (Vals archived that benchmark in 2026-09)",
+            "Cost per Artificial Analysis task about $1.87 at high, $3.16 at xhigh (API price, not the subscription allowance)"
           ],
           "planAccess": [
             "Paid Google AI Pro",
@@ -919,14 +922,23 @@
           },
           "evidence": [
             "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
-            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article",
+            "https://medium.com/data-science-in-your-pocket/gemini-4-hydrogen-vs-gemini-4-carbon-8d04d10704a7",
+            "https://agentspulse.github.io/tutorials/gemini-4-hydrogen-benchmarks/",
+            "https://apimaster.ai/blog/gemini-4-hydrogen-overview",
+            "Installed agy 1.5.9 models listing, 2026-11-14",
+            "https://artificialanalysis.ai/models/gemini-4-hydrogen",
+            "https://officechai.com/ai/gemini-4-hydrogen-artificial-analysis-intelligence-index/",
+            "https://venturebeat.com/technology/google-launches-gemini-4-hydrogen-a-faster-smarter-pricier-flash-successor",
+            "https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity/",
+            "https://www.requesty.ai/blog/smartest-ai-model-rankings"
           ]
         },
         {
           "id": "gemini-4-hydrogen-medium",
           "group": "Gemini Models",
           "released": "2026-11-12",
-          "tier": null,
+          "tier": "fast",
           "contextWindow": 1000000,
           "efforts": [
             "medium"
@@ -934,10 +946,13 @@
           "relativeAllowanceCost": 1,
           "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Vendor positions rapid everyday execution; allocation pending"
+            "Bounded implementation and test/fix loops at near Sonnet 5.5 / GPT-6.1 Sol level, faster and cheaper (Artificial Analysis Intelligence Index v5: 54 at xhigh, 51 at high, 41 medium, 27 low; Sol and Sonnet 55; Opus 5.5 59; Carbon 60; Fable 65)",
+            "Executor half of the Orchestrator"
           ],
           "weakAt": [
-            "Overall tier and exact allowance cost not confirmed"
+            "Terminal agent work: Artificial Analysis Terminal-Bench 4.0 54 % at high/xhigh vs Claude Opus 5.5 about 65 %; vendor Terminal-Bench 4.1 57.0 % vs Sonnet 5.5 63.9 %",
+            "No independent SWE-bench Verified score (Vals archived that benchmark in 2026-09)",
+            "Cost per Artificial Analysis task about $1.87 at high, $3.16 at xhigh (API price, not the subscription allowance)"
           ],
           "planAccess": [
             "Paid Google AI Pro",
@@ -950,14 +965,23 @@
           },
           "evidence": [
             "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
-            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article",
+            "https://medium.com/data-science-in-your-pocket/gemini-4-hydrogen-vs-gemini-4-carbon-8d04d10704a7",
+            "https://agentspulse.github.io/tutorials/gemini-4-hydrogen-benchmarks/",
+            "https://apimaster.ai/blog/gemini-4-hydrogen-overview",
+            "Installed agy 1.5.9 models listing, 2026-11-14",
+            "https://artificialanalysis.ai/models/gemini-4-hydrogen",
+            "https://officechai.com/ai/gemini-4-hydrogen-artificial-analysis-intelligence-index/",
+            "https://venturebeat.com/technology/google-launches-gemini-4-hydrogen-a-faster-smarter-pricier-flash-successor",
+            "https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity/",
+            "https://www.requesty.ai/blog/smartest-ai-model-rankings"
           ]
         },
         {
           "id": "gemini-4-hydrogen-high",
           "group": "Gemini Models",
           "released": "2026-11-12",
-          "tier": null,
+          "tier": "strong",
           "contextWindow": 1000000,
           "efforts": [
             "high"
@@ -965,10 +989,13 @@
           "relativeAllowanceCost": 1,
           "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Vendor positions rapid everyday execution; allocation pending"
+            "Bounded implementation and test/fix loops at near Sonnet 5.5 / GPT-6.1 Sol level, faster and cheaper (Artificial Analysis Intelligence Index v5: 54 at xhigh, 51 at high, 41 medium, 27 low; Sol and Sonnet 55; Opus 5.5 59; Carbon 60; Fable 65)",
+            "Executor half of the Orchestrator"
           ],
           "weakAt": [
-            "Overall tier and exact allowance cost not confirmed"
+            "Terminal agent work: Artificial Analysis Terminal-Bench 4.0 54 % at high/xhigh vs Claude Opus 5.5 about 65 %; vendor Terminal-Bench 4.1 57.0 % vs Sonnet 5.5 63.9 %",
+            "No independent SWE-bench Verified score (Vals archived that benchmark in 2026-09)",
+            "Cost per Artificial Analysis task about $1.87 at high, $3.16 at xhigh (API price, not the subscription allowance)"
           ],
           "planAccess": [
             "Paid Google AI Pro",
@@ -981,14 +1008,23 @@
           },
           "evidence": [
             "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
-            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article",
+            "https://medium.com/data-science-in-your-pocket/gemini-4-hydrogen-vs-gemini-4-carbon-8d04d10704a7",
+            "https://agentspulse.github.io/tutorials/gemini-4-hydrogen-benchmarks/",
+            "https://apimaster.ai/blog/gemini-4-hydrogen-overview",
+            "Installed agy 1.5.9 models listing, 2026-11-14",
+            "https://artificialanalysis.ai/models/gemini-4-hydrogen",
+            "https://officechai.com/ai/gemini-4-hydrogen-artificial-analysis-intelligence-index/",
+            "https://venturebeat.com/technology/google-launches-gemini-4-hydrogen-a-faster-smarter-pricier-flash-successor",
+            "https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity/",
+            "https://www.requesty.ai/blog/smartest-ai-model-rankings"
           ]
         },
         {
           "id": "gemini-4-hydrogen-xhigh",
           "group": "Gemini Models",
           "released": "2026-11-12",
-          "tier": null,
+          "tier": "strong",
           "contextWindow": 1000000,
           "efforts": [
             "xhigh"
@@ -996,10 +1032,13 @@
           "relativeAllowanceCost": 1,
           "costBasis": "Neutral placeholder: subscription allowance multiplier unconfirmed",
           "bestFor": [
-            "Vendor positions rapid everyday execution; allocation pending"
+            "Bounded implementation and test/fix loops at near Sonnet 5.5 / GPT-6.1 Sol level, faster and cheaper (Artificial Analysis Intelligence Index v5: 54 at xhigh, 51 at high, 41 medium, 27 low; Sol and Sonnet 55; Opus 5.5 59; Carbon 60; Fable 65)",
+            "Executor half of the Orchestrator"
           ],
           "weakAt": [
-            "Overall tier and exact allowance cost not confirmed"
+            "Terminal agent work: Artificial Analysis Terminal-Bench 4.0 54 % at high/xhigh vs Claude Opus 5.5 about 65 %; vendor Terminal-Bench 4.1 57.0 % vs Sonnet 5.5 63.9 %",
+            "No independent SWE-bench Verified score (Vals archived that benchmark in 2026-09)",
+            "Cost per Artificial Analysis task about $1.87 at high, $3.16 at xhigh (API price, not the subscription allowance)"
           ],
           "planAccess": [
             "Paid Google AI Pro",
@@ -1012,8 +1051,96 @@
           },
           "evidence": [
             "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
-            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article"
+            "Installed agy models listing, 2026-11-12; research worker had search only; planner opened vendor article",
+            "https://medium.com/data-science-in-your-pocket/gemini-4-hydrogen-vs-gemini-4-carbon-8d04d10704a7",
+            "https://agentspulse.github.io/tutorials/gemini-4-hydrogen-benchmarks/",
+            "https://apimaster.ai/blog/gemini-4-hydrogen-overview",
+            "Installed agy 1.5.9 models listing, 2026-11-14",
+            "https://artificialanalysis.ai/models/gemini-4-hydrogen",
+            "https://officechai.com/ai/gemini-4-hydrogen-artificial-analysis-intelligence-index/",
+            "https://venturebeat.com/technology/google-launches-gemini-4-hydrogen-a-faster-smarter-pricier-flash-successor",
+            "https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity/",
+            "https://www.requesty.ai/blog/smartest-ai-model-rankings"
           ]
+        },
+        {
+          "id": "gemini-pro-orchestrator",
+          "group": "Gemini Models",
+          "released": "2026-11-12",
+          "tier": "frontier",
+          "contextWindow": 0,
+          "efforts": [
+            "default"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Long multi-step agent tasks: Carbon plans, Hydrogen executes"
+          ],
+          "weakAt": [
+            "Two models in one call: harder to attribute a result; IDs and plan access reported inconsistently in early coverage",
+            "Not an independent reviewer of Gemini-written code"
+          ],
+          "evidence": [
+            "https://dev.to/evgenii_zinner/gemini-4-hydrogen-xhigh-thinking-and-native-orchestrator-mode-in-google-antigravity-2699",
+            "https://verboo.ai/en/blog/antigravity-orchestrator",
+            "https://cryptobriefing.com/google-antigravity-orchestrator-ai-ultra/",
+            "https://ahmetbalaman.com/en/blog/what-is-antigravity-orchestrator-carbon-hydrogen-en/",
+            "Installed agy 1.5.9 models listing, 2026-11-14 (Orchestrator (Carbon))"
+          ],
+          "costBasis": "Vendor claim only: about 24 % less quota and 19 % faster than Carbon alone on Terminal-Bench; not measured here (relativeAllowanceCost 1 is a neutral placeholder)",
+          "planAccess": [
+            "Google AI Ultra"
+          ]
+        },
+        {
+          "id": "gemini-pro-orchestrator-argon",
+          "group": "Gemini Models",
+          "released": "2026-11-12",
+          "tier": "strong",
+          "contextWindow": 0,
+          "efforts": [
+            "default"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [
+            "Same as the Carbon orchestrator at lower cost: Argon plans, Hydrogen executes"
+          ],
+          "weakAt": [
+            "As the Carbon orchestrator"
+          ],
+          "evidence": [
+            "https://dev.to/evgenii_zinner/gemini-4-hydrogen-xhigh-thinking-and-native-orchestrator-mode-in-google-antigravity-2699",
+            "https://verboo.ai/en/blog/antigravity-orchestrator",
+            "https://cryptobriefing.com/google-antigravity-orchestrator-ai-ultra/",
+            "https://ahmetbalaman.com/en/blog/what-is-antigravity-orchestrator-carbon-hydrogen-en/",
+            "Installed agy 1.5.9 models listing, 2026-11-14 (Orchestrator (Argon))"
+          ],
+          "costBasis": "Vendor claim only: about 24 % less quota and 19 % faster than Carbon alone on Terminal-Bench; not measured here (relativeAllowanceCost 1 is a neutral placeholder)",
+          "planAccess": [
+            "Google AI Pro",
+            "Google AI Ultra"
+          ]
+        },
+        {
+          "id": "gpt-oss-120b-medium",
+          "group": "Claude and GPT models",
+          "released": null,
+          "tier": null,
+          "contextWindow": 0,
+          "efforts": [
+            "medium"
+          ],
+          "relativeAllowanceCost": 1,
+          "bestFor": [],
+          "weakAt": [
+            "Reported scheduled for removal from Antigravity on 2026-11-18 (third-party reports of the models page); do not allocate"
+          ],
+          "evidence": [
+            "https://explainx.ai/blog/antigravity-claude-opus-5-5-sonnet-5-5-pro-ultra-gpt-oss-removal-2026",
+            "https://deepseekartifacts.com/blog/antigravity-models",
+            "Installed agy 1.5.9 models listing, 2026-11-14; agy /usage lists GPT-OSS 120B in the Claude and GPT group"
+          ],
+          "costBasis": "Not used (relativeAllowanceCost 1 is a neutral placeholder)"
         }
       ],
       "signIn": "agy",
@@ -1217,6 +1344,12 @@
         "why": "Vendor workhorse with near-Astra positioning at one-fifth the standard API price; locally accepted"
       },
       {
+        "provider": "agy",
+        "model": "gemini-4-hydrogen-xhigh",
+        "effort": "xhigh",
+        "why": "Near GPT-6.1 Sol on the Artificial Analysis index (54 vs 55), separate Gemini allowance, other family than Claude and OpenAI; weaker on terminal-agent benchmarks, so give it a written design"
+      },
+      {
         "provider": "claude",
         "model": "claude-sonnet-5-5",
         "effort": "high",
@@ -1235,6 +1368,12 @@
         "model": "gpt-6.1-terra",
         "effort": "medium",
         "why": "Routine implementation/tests at half Sol standard API price; locally accepted"
+      },
+      {
+        "provider": "agy",
+        "model": "gemini-4-hydrogen-high",
+        "effort": "high",
+        "why": "Fast Gemini executor for bounded test and fix loops; separate Gemini allowance; vendor-reported speed"
       },
       {
         "provider": "agy",
@@ -1331,13 +1470,13 @@
     ]
   },
   "changesSinceLastCheck": [
-    "Applied all allocation-relevant fact-check corrections to the supplied research JSON.",
-    "Corrected Astra/Sol/Terra/Luna roles and API-price ratios; cheap kinds do not select Astra.",
-    "Corrected Fable/Opus WebDev ranking, 2x list-price ratio, plan cap, and launch offer; removed unsupported model-behavior allegations.",
-    "Corrected Pro-tier window/Oct-29 distinctions, Carbon plan access and equal introductory Argon API price.",
-    "Checked concrete AGY effort-suffixed IDs and all four local Grok IDs; excluded retiring legacy AGY recommendations.",
-    "All four focused Codex IDs accepted a minimal low-effort OK call; native Claude inference was intentionally skipped.",
-    "Added Hydrogen concrete IDs from the CLI, independently opened its Nov-12 vendor announcement, left tier null and allowance cost unresolved."
+    "agy 1.5.5 -> 1.5.9",
+    "gemini-4-hydrogen-*: tier unknown -> strong at high/xhigh, fast at low/medium (Artificial Analysis Intelligence Index v5: 54 xhigh / 51 high, one point below GPT-6.1 Sol and Sonnet 5.5; AA Terminal-Bench 4.0 54 %)",
+    "New: gemini-pro-orchestrator (Carbon plans, Hydrogen executes; Ultra) and gemini-pro-orchestrator-argon (Pro/Ultra), added to Antigravity 2026-11-12",
+    "Listed: gpt-oss-120b-medium in the Claude and GPT group, reportedly removed 2026-11-18: not allocated",
+    "No separate Gemini CLI installed: Gemini models are reached only through agy",
+    "Grok signed in again on 2026-11-14 18:39 local (it had reported not authenticated earlier the same day)",
+    "Independent context: Artificial Analysis lists Grok 4.7 xhigh at 34, far below the others: keep Grok for web research and third-family second opinions"
   ],
   "notConfirmed": [
     "Exact subscription token/task ceilings and per-model allowance multipliers are not publicly established here; relativeAllowanceCost is a documented API-price proxy or a neutral placeholder, not measured plan burn.",
@@ -1349,7 +1488,10 @@
     "OpenAI API maximum context and CLI defaults differ: the Work/Codex model page says Sol defaults to 500000. Effective subscription context/settings vary by client.",
     "Older AGY gpt-oss-120b-medium remains in the local list despite scheduled Nov-18 retirement; it is excluded from active recommendations, not claimed already retired. Orchestrator is recorded as an excluded routing mode, not a ranked single model.",
     "Grok older-model API/plan availability and exact plan prices/multipliers beyond the checked shared-pool page are not confirmed. CLI 1.0.41 already lists 4.7 and Build Fast; no upgrade requirement is inferred.",
-    "Windows kernel sandbox enforcement, fresh-agent plugin activation and native Claude status-line callbacks remain unverified."
+    "Windows kernel sandbox enforcement, fresh-agent plugin activation and native Claude status-line callbacks remain unverified.",
+    "Orchestrator internal IDs and plan access: early coverage disagrees (one source names gemini-pro-orchestrator-g1-pro); the local agy listing shows gemini-pro-orchestrator and gemini-pro-orchestrator-argon",
+    "Hydrogen and Orchestrator benchmark numbers are vendor-reported through secondary sources",
+    "Artificial Analysis figures are taken from secondary reports of 2026-11-12/13 (index v5); the AA site itself was not opened"
   ],
-  "verifiedBy": "research: Gemini 4 Carbon; fact-check of the allocation-relevant claims: Grok 4.7; model ids checked against the installed CLIs"
+  "verifiedBy": "Claude Opus 5.5 (planner session), partial re-check of the Antigravity lineup on the owner's request; other providers carried over from 2026-11-12"
 }
