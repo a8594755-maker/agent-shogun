@@ -1,6 +1,6 @@
 {
-  "name": "roster",
+  "name": "agent-shogun",
   "version": "0.1.0",
-  "author": { "name": "Roster Contributors" },
+  "author": { "name": "Louis Hsu" },
   "description": "Allowance-aware coding worker dispatch with the multi-agent-dispatch skill"
 }

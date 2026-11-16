@@ -1,31 +1,34 @@
-# roster 0.1
+# agent-shogun 0.1
 
-One planner, several coding CLI workers, and allowance-aware dispatch. `roster`
+One planner, several coding CLI workers, and allowance-aware dispatch. `agent-shogun`
 starts detached turns, resumes the same conversations, records answers and token
 counts, and recommends a provider with room left. It has zero runtime dependencies
 and no build step. Requires Node.js 18+, Git, and separately installed provider CLIs.
 
 Providers: Codex, Antigravity, Claude Code, and Grok Build. The portable skill
 includes its own model catalog and research instructions, so it remains usable
-without installing roster or cloning a particular target project.
+without installing agent-shogun or cloning a particular target project.
 
 Dual-licensed: AGPL-3.0-only ([LICENSE](LICENSE)) or a commercial licence from the
 copyright holder. See [LICENSING.md](LICENSING.md). Contributions are accepted under
 the [Contributor Licence Agreement](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Formerly named roster. For compatibility, `bin/roster.mjs`, the `.roster/` state
+folder, `roster.config.json` and the `ROSTER_*` environment variables keep their names.
+
 ## Install
 
-Clone this repository, change into it, then either run `npm link` to make `roster`
-available on PATH, or run `node /path/to/roster/bin/roster.mjs` directly. On Windows,
+Clone this repository, change into it, then either run `npm link` to make `agent-shogun`
+available on PATH, or run `node /path/to/roster/bin/agent-shogun.mjs` directly. On Windows,
 PowerShell, cmd, and Git Bash are supported. On Unix the entry point is executable.
 `npm link` installs a local command; it does not publish a package. This package is
 marked private to prevent accidental npm publication.
 
-If Windows PowerShell blocks the generated `npm.ps1` or `roster.ps1` shim,
-use `npm.cmd link` and `roster.cmd`, or the direct `node` invocation above.
+If Windows PowerShell blocks the generated `npm.ps1` or `agent-shogun.ps1` shim,
+use `npm.cmd link` and `agent-shogun.cmd`, or the direct `node` invocation above.
 No execution-policy change is needed.
 
-Run roster commands from a Git repository, including from its subdirectories.
+Run agent-shogun commands from a Git repository, including from its subdirectories.
 State and configuration belong to that repository, even when a worker runs in a
 different directory or linked worktree. Keep using the same controlling repository
 for `send`, `status`, and `wait`.
@@ -33,10 +36,10 @@ for `send`, `status`, and `wait`.
 ## Five-minute walkthrough
 
 ```text
-roster init
-roster providers
-roster usage --refresh
-roster pick --kind server --json
+agent-shogun init
+agent-shogun providers
+agent-shogun usage --refresh
+agent-shogun pick --kind server --json
 ```
 
 Create `brief.txt` describing a small task, the files it owns, its acceptance
@@ -44,20 +47,20 @@ checks, and the mechanisms it must never use. Commit a baseline first if this is
 a new repository. Substitute an installed provider and an available model below:
 
 ```text
-roster start api --provider codex --brief brief.txt --worktree ../api-worker --branch worker/api --base HEAD
-roster status api
-roster wait api --timeout 30m
-roster answer api
-roster send api --message "Explain the tests you ran."
-roster wait api
-roster answer api --turn 2
-roster pick --kind review --not-family codex
-roster review api --by agy
+agent-shogun start api --provider codex --brief brief.txt --worktree ../api-worker --branch worker/api --base HEAD
+agent-shogun status api
+agent-shogun wait api --timeout 30m
+agent-shogun answer api
+agent-shogun send api --message "Explain the tests you ran."
+agent-shogun wait api
+agent-shogun answer api --turn 2
+agent-shogun pick --kind review --not-family codex
+agent-shogun review api --by agy
 ```
 
 The review command returns a new session name. Wait for that name and inspect its
 answer. Reviewers get separate detached worktrees; inspect their reproduction tests
-there. Read the worker diff and tests yourself before merging. Roster never merges
+there. Read the worker diff and tests yourself before merging. Agent Shogun never merges
 or pushes for you. Worktrees, branches, logs, and sessions remain until you remove
 them yourself; use `git worktree remove` when finished.
 
@@ -73,7 +76,7 @@ never a shell assembled from user text. `--flag=value` is supported.
 | --- | --- |
 | `init` | Write `roster.config.json` if absent and add `.roster/` to `.gitignore`; preserve an existing config. |
 | `providers` | Find binaries, probe `--version`, list models when a listing command exists. Missing CLIs do not break other providers. |
-| `catalog show [--json]` | Read the catalog in roster's installed skill folder, or the configured skill folder. Works outside Git repositories too. |
+| `catalog show [--json]` | Read the catalog in agent-shogun's installed skill folder, or the configured skill folder. Works outside Git repositories too. |
 | `catalog status [--json]` | Report verification date, age in days and next check. Exit 3 with one clear line if missing/invalid or older than `catalog.maxAgeDays`; exit 0 otherwise. |
 | `catalog set <file.json>` | Validate before changing anything; archive the previous and incoming catalog, write the new JSON, regenerate the skill's marked tables and date lines, then sync the full skill copy. |
 | `usage [--refresh]` | Show windows, percentage, resets, plan, source, reading age, staleness, learned limits, and local token gauges. Refresh bypasses the source cache. |
@@ -91,12 +94,12 @@ never a shell assembled from user text. `--flag=value` is supported.
 Example supplied readings:
 
 ```text
-roster usage set claude --window weekly --used 85 --resets 2026-11-14T14:00:00Z --window weekly:model-x --used 88 --resets 2026-11-14T14:00:00Z
+agent-shogun usage set claude --window weekly --used 85 --resets 2026-11-14T14:00:00Z --window weekly:model-x --used 88 --resets 2026-11-14T14:00:00Z
 ```
 
 Names are unique within a controlling repository, 1–80 ASCII letters, digits,
 underscores or hyphens. Start names with a letter or digit. Use a new name to start
-a fresh conversation. Different sessions may share a directory, but roster does
+a fresh conversation. Different sessions may share a directory, but agent-shogun does
 not serialize their file edits: assign one worker per branch/worktree.
 
 ## Access and guards
@@ -107,7 +110,7 @@ it. Antigravity uses `toolPermission: always-proceed`, its terminal sandbox,
 `allowNonWorkspaceAccess: false`, `--mode accept-edits`, and the deny list below.
 Claude uses `--permission-mode acceptEdits`; commands that require approval may
 be denied or fail in print mode. Safe mode is each provider's own policy, not a
-roster isolation boundary, and providers can change how it works.
+agent-shogun isolation boundary, and providers can change how it works.
 
 **Full** must be chosen with `--access full` or `access` in config. Codex uses
 `-s danger-full-access -c approval_policy="never"` (on resume the equivalent
@@ -131,7 +134,7 @@ Grok safe sessions use `--permission-mode default --sandbox workspace`, explicit
 `--allow` rules for rooted edits, git add/commit and project check commands, plus
 `--deny` rules for pushes and common deploy/publish commands. Its bundled guide
 recommends `workspace` for coding; its separate automation advice recommends
-always-approve, which roster deliberately does not enable for safe access.
+always-approve, which agent-shogun deliberately does not enable for safe access.
 Other default-mode headless calls may still be denied/cancelled. Configure project
 check commands with `providers.grok.testCommands`; defaults include `node --test`,
 `npm test`, and package scripts named test/check/typecheck/lint/build. No catch-all
@@ -140,7 +143,7 @@ The guide documents
 kernel sandbox enforcement on Linux/macOS only, and warns that unsupported
 built-in profiles may continue unenforced; **do not assume Windows isolation**.
 Grok full sessions explicitly use `bypassPermissions` and sandbox `off`. Both
-modes retain roster's child-environment guards. Without `--web`, Grok also receives
+modes retain agent-shogun's child-environment guards. Without `--web`, Grok also receives
 `--disable-web-search`. Grok creates a chosen UUID up front and resumes with `-r`;
 prompts use `--prompt-file`, so spaces and long briefs are not shell arguments.
 
@@ -151,11 +154,11 @@ its provider. Regex rules are interpreted by Antigravity and are not an exhausti
 command firewall. A dummy environment value is not a credential revocation.
 The review restrictions are instructions plus a separate worktree, not an enforced
 read-only sandbox. Inspect code before running an untrusted brief. Full mode can
-access the host. Roster itself does not inspect provider authentication files or
+access the host. Agent Shogun itself does not inspect provider authentication files or
 dump the child's inherited environment; provider CLIs use their existing sign-in.
 
 `--web` requests live search for Codex and removes Antigravity's web denies.
-Claude uses its own available web tools and policy. Without `--web`, roster does
+Claude uses its own available web tools and policy. Without `--web`, agent-shogun does
 not enforce a network ban for Codex or Claude. Pass `--web` when the research brief
 requires web access; a catalog preference alone does not grant it.
 
@@ -230,7 +233,7 @@ reset text remains unknown. Learned limits affect only the turn's model group.
 They clear after a reported reset, a later successful turn in that group, or a
 newer supplied reading below the ceiling with a future reset. Legacy receipts
 without model/group information conservatively apply to the whole provider.
-Local token gauges exclude work outside roster and are **not** subscription
+Local token gauges exclude work outside agent-shogun and are **not** subscription
 percentages or interchangeable billing units. `--refresh` bypasses the source
 cache and can perform the quota commands above, but never starts an inference turn.
 
@@ -249,14 +252,14 @@ candidates, per-window numbers and rejection reasons.
 Every adapter also implements `authState()` without inference. Codex uses
 `login status`, Claude uses `auth status --json`, Antigravity uses its successful
 built-in `/usage` response, and Grok parses the signed-in/signed-out banner from
-`models`. Roster returns only the state and sign-in command, never raw sign-in
+`models`. Agent Shogun returns only the state and sign-in command, never raw sign-in
 diagnostics or identity fields. `providers` shows authentication separately from
 installation. `pick` requires **signed in**; signed-out and unknown-auth candidates
 are excluded. No credential or cookie files are opened by these readers.
 
 Grok has no headless subscription-allowance command. **Never send `grok -p /usage`:**
 it is an inference prompt. `grok usage` concerns persisted session spend, not
-remaining plan allowance. Roster instead sums reported turn tokens and
+remaining plan allowance. Agent Shogun instead sums reported turn tokens and
 `total_cost_usd` in 5-hour/7-day gauges and learns quota errors. Missing or partial
 cost is unknown, not zero; JSON reports counted and unreported turns separately.
 Max-turn failures remain failed and preserve any reported spend, but are not
@@ -283,7 +286,7 @@ check cannot run, it instructs the agent to disclose the reason and catalog age
 before continuing. Rejected model IDs and newly listed IDs make the catalog stale.
 
 The skill alone contains everything needed for direct CLI dispatch and manual
-catalog/table/date updates. With roster, `catalog set` handles validation, dated
+catalog/table/date updates. With agent-shogun, `catalog set` handles validation, dated
 history in `references/catalog-history/`, table/date generation, and full-folder
 sync. Both trees are validated and staged before directory swaps; ordinary errors
 roll both back, including history. A crash between swaps is not a filesystem-wide
@@ -321,7 +324,7 @@ Manually add this one line to Claude Code's settings, substituting the clone pat
 ```
 
 On Windows use an absolute path with forward slashes, for example
-`C:/tools/roster/scripts/claude-statusline-cache.mjs`. Roster never edits Claude
+`C:/tools/roster/scripts/claude-statusline-cache.mjs`. Agent Shogun never edits Claude
 settings and does not install this hook. The script writes only the documented
 two rate-limit windows and a timestamp, atomically; it never saves the full stdin
 payload. Before a response supplies limits, the previous cache is left intact,
@@ -337,15 +340,15 @@ The existing command receives identical stdin and supplies the displayed output.
 Arguments are spawned directly, without a shell; shell expressions require an
 explicit shell executable chosen by the user. Generic usage appears when there
 is no pass-through command. Record per-model weekly limits with, for example,
-`roster usage set claude --window weekly:opus --used 85 --resets 2026-11-14T14:00:00Z`.
+`agent-shogun usage set claude --window weekly:opus --used 85 --resets 2026-11-14T14:00:00Z`.
 
 ### Optional external source
 
 `usage.externalCommand` is an opt-in executable/argument array, default `null`.
-If configured, roster runs it once per source-cache interval, directly without
+If configured, agent-shogun runs it once per source-cache interval, directly without
 a shell, and maps its JSON allowance rows. An example external tool is
 [Win-CodexBar](https://github.com/nesszer/Win-CodexBar); it is **not bundled or
-recommended**, and roster does not invoke it by default:
+recommended**, and agent-shogun does not invoke it by default:
 
 ```json
 "usage": { "externalCommand": ["codexbar-cli", "usage", "-p", "all", "-f", "json"] }
@@ -353,7 +356,7 @@ recommended**, and roster does not invoke it by default:
 
 External programs choose their own data-access methods, possibly including
 credential/cookie stores or undocumented endpoints. This is an explicit user
-choice, separate from roster's built-in readers. Do not configure an external
+choice, separate from agent-shogun's built-in readers. Do not configure an external
 program whose behavior you have not accepted. No external usage command was
 installed or run on this PC for verification.
 
@@ -373,7 +376,7 @@ reader. Timeout is controlled by `usage.externalTimeoutMs` (15000 by default).
 
 ## Configuration
 
-`roster init` writes defaults as editable JSON; every field is optional.
+`agent-shogun init` writes defaults as editable JSON; every field is optional.
 `~/.roster/config.json` supplies personal settings below the nearest project
 configuration (`ROSTER_HOME` can override that home directory). Nested objects
 merge; arrays replace. Relative binary paths resolve from the config file's
@@ -423,7 +426,7 @@ suffixed ID. Known catalog effort restrictions also apply to Codex, Claude
 by `start`, rather than mixing a requested model with a provider's default effort.
 
 Provider versions are probed with `--version`. Antigravity exposes `models`;
-the checked Codex and Claude CLIs have no model-list command, so roster labels
+the checked Codex and Claude CLIs have no model-list command, so agent-shogun labels
 their configured model separately instead of inventing a catalogue. Missing
 installation and unavailable model listing are separate states.
 
@@ -472,7 +475,7 @@ On Unix stop signals the owned provider group; on Windows it uses
 Processes that deliberately detach from that tree/group can escape termination.
 
 `done` means the CLI reported a successful turn, not that its answer is correct,
-its tests passed, or it committed. Verify the answer, HEAD, and diff. Roster never
+its tests passed, or it committed. Verify the answer, HEAD, and diff. Agent Shogun never
 promotes a refusal or an unsupported claim into task completion evidence.
 
 ## Development and adding a provider
@@ -507,18 +510,18 @@ The canonical Agent Skills directory is `skills/multi-agent-dispatch/`.
 history, to `.agents/skills/multi-agent-dispatch/` for Codex and Antigravity repository
 discovery, without a Windows symlink. A test fails if these files differ. Edit the
 canonical folder, then sync; the copy is committed for fresh clones. Agent skills
-do not install the CLI: use `npm link`, or `node <path>/bin/roster.mjs`.
+do not install the CLI: use `npm link`, or `node <path>/bin/agent-shogun.mjs`.
 
 Claude Code has `.claude-plugin/plugin.json` and a one-plugin marketplace at
 `.claude-plugin/marketplace.json`. Use the local clone without a remote URL:
 
 ```text
 claude plugin marketplace add /path/to/roster
-claude plugin install roster@roster-plugins
+claude plugin install agent-shogun@agent-shogun-plugins
 ```
 
 After the owner publishes a repository, a user could instead use
-`/plugin install roster --marketplace <owner>/<repo>` in Claude Code. No remote
+`/plugin install agent-shogun --marketplace <owner>/<repo>` in Claude Code. No remote
 URL is embedded or assumed, and this work does not publish anything. Antigravity's
 root `plugin.json` declares `skills: "./skills"`; after a repository exists its
 documented install form is `agy plugin install <repo url>`. Its installed CLI
@@ -557,7 +560,7 @@ installed on this PC.
 On Windows, 2026-11-12, one new conversation and one follow-up per provider were
 run in temporary Git repositories using safe access. Codex CLI 0.167.0 with
 `gpt-6-astra`, low effort, answered `DONE`, created a tracked `hello.txt` containing
-`roster`, committed it, and resumed with `hello.txt`. Antigravity 1.5.7 with
+`agent-shogun`, committed it, and resumed with `hello.txt`. Antigravity 1.5.7 with
 `gemini-3.8-flash-low`, low effort, answered `DONE` followed by a newline, committed
 the same file/content, and resumed with `hello.txt` followed by a newline. Neither
 refused the task. Conversation IDs matched across each pair of turns.
@@ -576,10 +579,10 @@ inference: `unknown effort level 'none'; use one of: xhigh, high, medium, low`.
 The default and seed catalog now use the measured minimum, `low`. With low effort,
 the initial turn and resumed follow-up both ended `cancelled` (empty stderr).
 No `hello.txt` or task commit was created. Initial answer:
-`I'll create hello.txt with the word roster, commit it on main, and run the project's type check and tests until they pass.`
+`I'll create hello.txt with the word agent-shogun, commit it on main, and run the project's type check and tests until they pass.`
 The follow-up stated that the previous command was cancelled before any file was
 written and it would check the directory. The session IDs matched; reported costs
-were USD 0.03112088 and 0.00909024. Roster correctly marked both turns failed.
+were USD 0.03112088 and 0.00909024. Agent Shogun correctly marked both turns failed.
 The reason for cancellation was not confirmed; safe access was not escalated.
 
 The next repair verified the permission cause with three Grok calls at low effort:
@@ -598,6 +601,6 @@ before changing the catalog/allocation.
 
 ## Licence
 
-Copyright (c) 2026 Louis Hsu. roster is available under the GNU Affero General
+Copyright (c) 2026 Louis Hsu. agent-shogun is available under the GNU Affero General
 Public License v3.0 only, or under a separate commercial licence. See
 [LICENSING.md](LICENSING.md).

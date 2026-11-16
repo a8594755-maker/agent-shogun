@@ -1,4 +1,4 @@
-# Use the skill without roster
+# Use the skill without agent-shogun
 
 This folder is sufficient for planning and dispatch. The CLIs themselves must be
 installed and signed in; use each provider's `cli` and `signIn` catalog fields.
@@ -57,7 +57,7 @@ append a `remote.origin.pushurl=disabled://workers-do-not-push` entry using
 entries. Override deploy credentials with dummy values if authorized. These guards
 are bypassable and are not an isolation boundary or blanket network restriction.
 
-## Allowance without roster
+## Allowance without agent-shogun
 
 - Antigravity: spawn `agy` with `['--print','/usage','--output-format','json']`
   directly, without `--disable-slash-commands`. Read `command.data.groups` and

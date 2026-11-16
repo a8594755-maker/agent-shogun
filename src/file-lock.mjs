@@ -5,7 +5,7 @@ import { readJson } from './io.mjs';
 import { processIdentity, sameProcess } from './process-owner.mjs';
 
 let selfIdentity;
-function busy() { return new Error('Another roster command holds this lock.'); }
+function busy() { return new Error('Another agent-shogun command holds this lock.'); }
 function valid(owner) { return Number.isSafeInteger(owner?.pid) && owner.pid>0 && typeof owner.startTime==='string' && /^[a-f0-9-]{36}$/i.test(owner.nonce); }
 async function readOwner(file) {
   const owner=await readJson(file,null);

@@ -48,7 +48,7 @@ function costGauge(rows, now) {
     const reported = recent.filter(r => Number.isFinite(r.costUsd));
     return { totalUsd: reported.length ? Number(reported.reduce((n, r) => n + r.costUsd, 0).toFixed(10)) : null, reportedTurns: reported.length, unreportedTurns: recent.length - reported.length };
   };
-  return { last5Hours: sum(5 * 3600000), last7Days: sum(7 * 86400000), source: 'reported roster turn cost only; missing/partial costs are unknown' };
+  return { last5Hours: sum(5 * 3600000), last7Days: sum(7 * 86400000), source: 'reported agent-shogun turn cost only; missing/partial costs are unknown' };
 }
 export async function usage(root, config, { refresh = false, now = Date.now(), sourceOptions = {} } = {}) {
   const receipts = await turnReceipts(root), base = path.join(stateDirectory(root), 'usage');
@@ -103,6 +103,6 @@ export async function usage(root, config, { refresh = false, now = Date.now(), s
       return { ...groupCost, id, name: auto?.name || supplied?.name || (id === 'third-party' ? 'Claude and GPT models' : 'All models'), windows, unknown: !windows.length, ...(!windows.length ? { reason: invalid?.reason || auto?.reason || automatic.reason || 'No reading for this model group.' } : {}), stale: windows.some(w => w.stale || w.expired), limited, ...(learnedLimited ? { limitedSince: lastLimit.endedAt, lastMessage: lastLimit.limitMessage, limitResetsAt: lastLimit.limitResetsAt || null } : limited ? { limitedSince: automatic.limitedSince, lastMessage: automatic.lastMessage, limitResetsAt: automatic.limitResetsAt } : {}), tokenGauge: { last5Hours: sum(groupRuns, 5 * 3600000), last7Days: sum(groupRuns, 7 * 86400000) } };
     });
     const windows = groups.flatMap(g => g.windows);
-    return { ...(provider === 'grok' ? { costGauge: costGauge(runs, now) } : {}), provider, groups, ...(invalid?{invalid:true,reason:invalid.reason}:{}), unknown: groups.every(g => g.unknown), plan: manual?.plan || automatic.plan || null, credits: automatic.credits, source: [...new Set(windows.map(w => w.source))].join(' + ') || automatic.source || 'unknown', readAt: automatic.readAt, ageSeconds: windows.length ? Math.max(...windows.map(w => w.ageSeconds)) : Math.max(0, (now - Date.parse(automatic.readAt)) / 1000), stale: groups.some(g => g.stale), limited: groups.every(g => g.limited), fallbackReason: automatic.fallbackReason, tokenGauge: { last5Hours: sum(runs, 5 * 3600000), last7Days: sum(runs, 7 * 86400000), source: 'local roster turns only; tokens are not subscription percentages' } };
+    return { ...(provider === 'grok' ? { costGauge: costGauge(runs, now) } : {}), provider, groups, ...(invalid?{invalid:true,reason:invalid.reason}:{}), unknown: groups.every(g => g.unknown), plan: manual?.plan || automatic.plan || null, credits: automatic.credits, source: [...new Set(windows.map(w => w.source))].join(' + ') || automatic.source || 'unknown', readAt: automatic.readAt, ageSeconds: windows.length ? Math.max(...windows.map(w => w.ageSeconds)) : Math.max(0, (now - Date.parse(automatic.readAt)) / 1000), stale: groups.some(g => g.stale), limited: groups.every(g => g.limited), fallbackReason: automatic.fallbackReason, tokenGauge: { last5Hours: sum(runs, 5 * 3600000), last7Days: sum(runs, 7 * 86400000), source: 'local agent-shogun turns only; tokens are not subscription percentages' } };
   }));
 }

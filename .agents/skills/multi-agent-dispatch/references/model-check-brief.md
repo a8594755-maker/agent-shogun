@@ -75,6 +75,6 @@ The planner must open pages behind any claim that changes allocation and verify
 every proposed model ID. Hand the web research to an eligible provider with the
 most remaining allowance, then independently check the result. If there is no web
 access or allowance, report the limitation and catalog age; do not stamp an
-unperformed check as current. Use `roster catalog set <file.json>` to apply a
+unperformed check as current. Use `agent-shogun catalog set <file.json>` to apply a
 verified result, or update the JSON, generated tables, verification line and
 next-check date manually when only this skill folder is available.

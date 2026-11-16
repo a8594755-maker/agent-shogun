@@ -11,7 +11,7 @@ import {isoSeconds} from '../src/allowance.mjs';
 let input = '';
 for await (const chunk of process.stdin) {
   input += chunk;
-  if (input.length > 1024 * 1024) { console.error('roster: status-line input exceeds 1 MiB.'); process.exit(1); }
+  if (input.length > 1024 * 1024) { console.error('agent-shogun: status-line input exceeds 1 MiB.'); process.exit(1); }
 }
 let data,invalid=false;
 try { data = JSON.parse(input); } catch { data = {};invalid=true; }
@@ -28,7 +28,7 @@ if (Object.keys(limits).length || invalid) {
     await fs.mkdir(path.dirname(file), { recursive: true });
     await fs.writeFile(temp, JSON.stringify({ rate_limits: invalid?{}:limits, ...(invalid?{invalid:true,reason:'Invalid status-line allowance payload'}:{}),readAt: new Date().toISOString() }) + '\n', { mode: 0o600, flag: 'wx' });
     await fs.rename(temp, file);
-  } catch { await fs.unlink(temp).catch(() => {}); console.error('roster: could not update the status-line cache.'); }
+  } catch { await fs.unlink(temp).catch(() => {}); console.error('agent-shogun: could not update the status-line cache.'); }
 }
 const args = process.argv.slice(2);
 if (args[0] === '--') args.shift();
@@ -39,7 +39,7 @@ if (args.length) {
     const child = spawn(binary.file, [...binary.args, ...args], { shell: false, windowsHide: true, stdio: ['pipe', 'inherit', 'inherit'] });
     child.stdin.on('error', () => {}); child.stdin.end(input);
     process.exitCode = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', code => resolve(code ?? 1)); });
-  } catch { console.error('roster: could not run the existing status-line command.'); process.exitCode = 1; }
+  } catch { console.error('agent-shogun: could not run the existing status-line command.'); process.exitCode = 1; }
 } else {
   const parts = invalid?[]:Object.entries(limits).map(([key, w]) => `${key === 'five_hour' ? '5h' : '7d'} ${w.used_percentage}%`);
   console.log(`Claude ${parts.join(' ') || 'usage unknown'}`);

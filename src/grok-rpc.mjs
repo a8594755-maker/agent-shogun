@@ -5,7 +5,7 @@ import { ownChild, terminateOwned } from './process-owner.mjs';
 /**
  * Reads the signed-in Grok plan's billing period through the CLI's own agent protocol (ACP, JSON-RPC over stdio):
  * `grok agent --no-leader stdio`, then `initialize` and the xAI extension `_x.ai/billing`. This is a control call:
- * no session, no prompt, no model turn. The CLI uses its own sign-in; roster never reads `~/.grok/auth.json`.
+ * no session, no prompt, no model turn. The CLI uses its own sign-in; agent-shogun never reads `~/.grok/auth.json`.
  * `--no-leader` starts a short-lived local agent instead of attaching to the user's shared leader process.
  * `_x.ai/billing` is an undocumented extension: callers must treat any failure as "unknown", never as 0 %.
  */

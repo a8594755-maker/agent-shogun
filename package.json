@@ -1,12 +1,12 @@
 {
-  "name": "roster",
+  "name": "agent-shogun",
   "version": "0.1.0",
   "description": "Manage coding CLI workers and subscription allowance from one planner",
   "type": "module",
   "license": "AGPL-3.0-only",
   "author": "Louis Hsu",
   "private": true,
-  "bin": { "roster": "bin/roster.mjs" },
-  "scripts": { "test": "node --test", "check": "node --check bin/roster.mjs", "sync-skill": "node scripts/sync-skill.mjs" },
+  "bin": { "agent-shogun": "bin/agent-shogun.mjs", "shogun": "bin/agent-shogun.mjs" },
+  "scripts": { "test": "node --test", "check": "node --check bin/agent-shogun.mjs", "sync-skill": "node scripts/sync-skill.mjs" },
   "engines": { "node": ">=18" }
 }

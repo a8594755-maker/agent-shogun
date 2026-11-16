@@ -1,10 +1,10 @@
 {
-  "name": "roster-plugins",
-  "description": "The roster dispatch skill for coding agents",
-  "owner": { "name": "Roster Contributors" },
+  "name": "agent-shogun-plugins",
+  "description": "The agent-shogun dispatch skill for coding agents",
+  "owner": { "name": "Louis Hsu" },
   "plugins": [
     {
-      "name": "roster",
+      "name": "agent-shogun",
       "source": "./",
       "version": "0.1.0",
       "description": "Allowance-aware coding worker dispatch"

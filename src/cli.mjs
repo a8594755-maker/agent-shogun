@@ -9,8 +9,8 @@ import { pick } from './pick.mjs';
 import * as sessions from './sessions.mjs';
 import { loadCatalog, setCatalog, modelDrift } from './catalog.mjs';
 
-const help = `roster 0.1.0 — coding CLI workers and allowance-aware dispatch
-Usage: roster [--config <path>] <command> [options] [--json]
+const help = `agent-shogun 0.1.0 — coding CLI workers and allowance-aware dispatch
+Usage: agent-shogun [--config <path>] <command> [options] [--json]
   init
   providers
   usage [--refresh]
@@ -72,7 +72,7 @@ export function duration(value = '30m') {
   return ms;
 }
 function requireOption(options, key) { if (!options[key]) throw new Error(`Missing --${key}`); return options[key]; }
-function arity(args, min, max = min) { if (args.length < min || args.length > max) throw new Error('Wrong number of arguments. See roster --help.'); }
+function arity(args, min, max = min) { if (args.length < min || args.length > max) throw new Error('Wrong number of arguments. See agent-shogun --help.'); }
 async function messageText(value) {
   try { return await fs.readFile(path.resolve(value), 'utf8'); }
   catch (e) { if (['ENOENT','ENAMETOOLONG','EISDIR','EINVAL'].includes(e.code)) return value; throw e; }
@@ -149,5 +149,5 @@ export async function main(argv = process.argv.slice(2)) {
       case 'review': arity(p, 1); value = await sessions.review(root, config, p[0], checkProvider(requireOption(o, 'by')), o.brief ? await fs.readFile(path.resolve(o.brief), 'utf8') : '',o); break;
     }
     console.log(json ? JSON.stringify(value) : human(outputCommand, value));
-  } catch (e) { console.error(json ? JSON.stringify({ error: e.message }) : `roster: ${e.message}`); process.exitCode = 1; }
+  } catch (e) { console.error(json ? JSON.stringify({ error: e.message }) : `agent-shogun: ${e.message}`); process.exitCode = 1; }
 }

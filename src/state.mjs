@@ -12,6 +12,6 @@ export function stateDirectory(root) {
 }
 export function rosterHome() {
   const home = path.resolve(process.env.ROSTER_HOME || path.join(os.homedir(), '.roster'));
-  if ((process.env.ROSTER_TEST_MODE || process.env.NODE_TEST_CONTEXT) && (!process.env.ROSTER_TEST_ROOT || !process.env.ROSTER_HOME || !within(process.env.ROSTER_TEST_ROOT, home))) throw new Error('Test isolation required: refusing real roster home.');
+  if ((process.env.ROSTER_TEST_MODE || process.env.NODE_TEST_CONTEXT) && (!process.env.ROSTER_TEST_ROOT || !process.env.ROSTER_HOME || !within(process.env.ROSTER_TEST_ROOT, home))) throw new Error('Test isolation required: refusing real agent-shogun home.');
   return home;
 }

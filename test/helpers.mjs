@@ -7,7 +7,7 @@ import { exec } from '../src/io.mjs';
 import { defaults, providerNames } from '../src/config.mjs';
 
 export const project = fileURLToPath(new URL('..', import.meta.url));
-export const cli = path.join(project, 'bin', 'roster.mjs');
+export const cli = path.join(project, 'bin', 'agent-shogun.mjs');
 export async function scratch(t) {
   const parent = await fs.mkdtemp(path.join(process.env.ROSTER_TEST_ROOT, 'roster-test-'));
   const root = path.join(parent, 'space Ω');

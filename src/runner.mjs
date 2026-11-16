@@ -20,7 +20,7 @@ async function run() {
   const audit = event => fsp.appendFile(path.join(dir,'control.jsonl'),JSON.stringify({at:new Date().toISOString(),...event})+'\n').catch(()=>{});
   const killTree = async () => { if (child) return terminateOwned(child); };
   const interrupt = async reason => { stopped = true; termination = reason; await audit(reason); await killTree(); };
-  // A console interrupt from a provider/test terminal is not an authenticated roster stop.
+  // A console interrupt from a provider/test terminal is not an authenticated agent-shogun stop.
   process.on('SIGINT', () => { void audit({event:'ignored_signal',signal:'SIGINT'}); });
   process.on('SIGTERM', () => { void interrupt({event:'signal',signal:'SIGTERM'}); });
   try {

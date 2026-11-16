@@ -33,7 +33,7 @@ export async function readRateLimits(binary, { timeoutMs = 15000 } = {}) {
     await ownChild(child);
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Codex app-server usage timed out.')), timeoutMs); });
     return await Promise.race([timeout, (async () => {
-      await request(1, 'initialize', { clientInfo: { name: 'roster', version: '0.1.0' }, capabilities: { experimentalApi: false } });
+      await request(1, 'initialize', { clientInfo: { name: 'agent-shogun', version: '0.1.0' }, capabilities: { experimentalApi: false } });
       send({ jsonrpc: '2.0', method: 'initialized' });
       return request(2, 'account/rateLimits/read');
     })()]);

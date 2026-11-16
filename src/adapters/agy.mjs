@@ -16,7 +16,7 @@ export default {
     for await(const line of readline.createInterface({input:fs.createReadStream(file),crlfDelay:Infinity})){
       let value;try{value=JSON.parse(line);}catch{continue;}
       if(value.event==='result')e=value.result;
-      else if(value.conversation_id&&value.status)e=value; // pre-stream roster logs remain readable
+      else if(value.conversation_id&&value.status)e=value; // pre-stream agent-shogun logs remain readable
     }
     if(!e)throw new Error('No Antigravity terminal result envelope');
     return { sessionId: e.conversation_id, answer: e.response || '', usage: tokens(e.usage), ok: ['success', 'completed', 'done', 'ok'].includes(String(e.status).toLowerCase()), error: e.error?.message || (typeof e.error === 'string' ? e.error : undefined), details: { status: e.status, numTurns: e.num_turns, deniedActions: e.denied_actions || [] } };

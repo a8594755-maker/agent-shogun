@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-import { main } from '../src/cli.mjs';
-await main();
+// Compatibility entry point for the former name, roster. Use bin/agent-shogun.mjs.
+import './agent-shogun.mjs';

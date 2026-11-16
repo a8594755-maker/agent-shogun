@@ -13,7 +13,7 @@ function isoTime(value) {
 }
 
 /**
- * Maps the `_x.ai/billing` result to roster's allowance reading. A missing or malformed `creditUsagePercent` or period
+ * Maps the `_x.ai/billing` result to agent-shogun's allowance reading. A missing or malformed `creditUsagePercent` or period
  * (API-key sign-in, another account type, a renamed field) is "unknown", never 0 %.
  */
 export function grokAllowanceFromBilling(result, now = Date.now()) {
