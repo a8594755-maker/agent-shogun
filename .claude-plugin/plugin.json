@@ -1,6 +1,6 @@
 {
   "name": "agent-shogun",
   "version": "0.1.0",
-  "author": { "name": "Louis Hsu" },
+  "author": { "name": "Louis Hsu", "email": "a8594755@gmail.com" },
   "description": "Allowance-aware coding worker dispatch with the multi-agent-dispatch skill"
 }

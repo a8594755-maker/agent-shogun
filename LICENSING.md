@@ -26,10 +26,10 @@ This summary is for convenience only; the licence text is what governs.
 
 ## Commercial licence
 
-To ask about a commercial licence, open an issue in this repository titled
-"Commercial licence", or contact the copyright holder through the GitHub
-profile that owns this repository. Do not put confidential details in a public
-issue; ask for a private contact instead.
+To ask about a commercial licence, email the copyright holder at
+a8594755@gmail.com, or open an issue in this repository titled
+"Commercial licence". Do not put confidential details in a public issue; use
+email instead.
 
 ## Contributions
 
