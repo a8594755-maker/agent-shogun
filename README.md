@@ -9,7 +9,9 @@ Providers: Codex, Antigravity, Claude Code, and Grok Build. The portable skill
 includes its own model catalog and research instructions, so it remains usable
 without installing roster or cloning a particular target project.
 
-No licence has been selected yet. See [LICENSE-TODO.md](LICENSE-TODO.md).
+Dual-licensed: AGPL-3.0-only ([LICENSE](LICENSE)) or a commercial licence from the
+copyright holder. See [LICENSING.md](LICENSING.md). Contributions are accepted under
+the [Contributor Licence Agreement](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Install
 
@@ -593,3 +595,9 @@ initial inventory was seeded. The new drift checks reported these uncatalogued
 IDs in providers, usage and picks. A current verification date does not resolve
 that warning; the instructed online model check must confirm their capabilities
 before changing the catalog/allocation.
+
+## Licence
+
+Copyright (c) 2026 Louis Hsu. roster is available under the GNU Affero General
+Public License v3.0 only, or under a separate commercial licence. See
+[LICENSING.md](LICENSING.md).

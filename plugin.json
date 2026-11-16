@@ -2,5 +2,6 @@
   "name": "roster",
   "version": "0.1.0",
   "description": "Allowance-aware coding worker dispatch with the multi-agent-dispatch skill",
+  "license": "AGPL-3.0-only",
   "skills": "./skills"
 }
